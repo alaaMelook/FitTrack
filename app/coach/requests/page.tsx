@@ -1,14 +1,19 @@
 import type { Metadata } from 'next'
 import { requireCoach } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { UserCheck, Clock, CheckCircle2, XCircle, AlertCircle, Phone, User } from 'lucide-react'
 import { CoachRequestActions } from '@/components/coach/coach-request-actions'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = { title: 'Client Requests — FitTrack' }
 
 export default async function CoachRequestsPage() {
   const session = await requireCoach()
   const supabase = await createClient()
+  const adminClient = createAdminClient()
 
   // Get coach record
   const { data: coachRow } = await supabase
@@ -19,9 +24,11 @@ export default async function CoachRequestsPage() {
 
   const coachId = coachRow?.id
 
-  // Fetch all requests directed to this coach
-  const { data: requests } = coachId
-    ? await supabase
+  // Fetch all requests directed to this coach using admin client to read client users details
+  let requests: any[] = []
+  if (coachId) {
+    try {
+      const { data } = await adminClient
         .from('coach_change_requests')
         .select(`
           id,
@@ -47,10 +54,14 @@ export default async function CoachRequestsPage() {
         `)
         .eq('requested_coach_id', coachId)
         .order('created_at', { ascending: false })
-    : { data: [] }
+      if (data) requests = data
+    } catch (e) {
+      console.error('Error fetching coach requests:', e)
+    }
+  }
 
-  const pendingRequests = requests?.filter((r) => r.status === 'pending') ?? []
-  const pastRequests = requests?.filter((r) => r.status !== 'pending') ?? []
+  const pendingRequests = requests.filter((r) => r.status === 'pending')
+  const pastRequests = requests.filter((r) => r.status !== 'pending')
 
   return (
     <div className="page-body animate-fade-in">

@@ -1,14 +1,19 @@
 import type { Metadata } from 'next'
 import { requireClient } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { RefreshCw, Clock, CheckCircle2, XCircle, UserCheck } from 'lucide-react'
 import { ChangeCoachForm } from '@/components/client/change-coach-form'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = { title: 'Request Coach Change — FitTrack' }
 
 export default async function ClientChangeCoachPage() {
   const session = await requireClient()
   const supabase = await createClient()
+  const adminClient = createAdminClient()
 
   // Get client record
   const { data: clientRow } = await supabase
@@ -19,9 +24,23 @@ export default async function ClientChangeCoachPage() {
 
   const clientId = clientRow?.id
 
-  // Fetch past requests with requested coach name
-  const { data: pastRequests } = clientId
+  // Fetch current assigned coach ID
+  const { data: currentAssignment } = clientId
     ? await supabase
+        .from('coach_assignments')
+        .select('coach_id')
+        .eq('client_id', clientId)
+        .is('ended_at', null)
+        .maybeSingle()
+    : { data: null }
+
+  const currentCoachId = currentAssignment?.coach_id
+
+  // Fetch past requests with requested coach name (using admin client to bypass RLS on coach user profiles)
+  let pastRequests: any[] = []
+  if (clientId) {
+    try {
+      const { data } = await adminClient
         .from('coach_change_requests')
         .select(`
           id,
@@ -35,26 +54,37 @@ export default async function ClientChangeCoachPage() {
         `)
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
-    : { data: [] }
+      if (data) pastRequests = data
+    } catch (e) {
+      console.error('Error fetching past change requests:', e)
+    }
+  }
 
   const hasPending = pastRequests?.some((r) => r.status === 'pending') ?? false
 
-  // Fetch all active coaches in the gym
-  const { data: coachesData } = clientRow
-    ? await supabase
-        .from('coaches')
-        .select(`
-          id,
-          users ( full_name )
-        `)
-        .eq('gym_id', clientRow.gym_id)
-        .eq('is_active', true)
-    : { data: [] }
+  // Fetch all active coaches (excluding the current coach)
+  let availableCoaches: { id: string; name: string }[] = []
+  try {
+    const { data: coachesData } = await adminClient
+      .from('coaches')
+      .select(`
+        id,
+        users ( full_name )
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
 
-  const availableCoaches = (coachesData || []).map((c: any) => ({
-    id: c.id,
-    name: c.users?.full_name || 'Coach',
-  }))
+    if (coachesData) {
+      availableCoaches = coachesData
+        .filter((c: any) => c.id !== currentCoachId)
+        .map((c: any) => ({
+          id: c.id,
+          name: c.users?.full_name || 'Coach',
+        }))
+    }
+  } catch (e) {
+    console.error('Error fetching available coaches:', e)
+  }
 
   const statusBadge = (status: string) => {
     if (status === 'approved') return <span className="badge badge-success">Accepted & Assigned</span>
@@ -84,7 +114,7 @@ export default async function ClientChangeCoachPage() {
               Request History
             </h3>
 
-            {!pastRequests || pastRequests.length === 0 ? (
+            {pastRequests.length === 0 ? (
               <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
                 <div className="empty-icon"><RefreshCw size={24} /></div>
                 <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>No previous change requests.</p>
