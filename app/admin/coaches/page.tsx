@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth/session'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { UserCheck, Users, Plus } from 'lucide-react'
 import { CoachVisibilityToggle } from '@/components/admin/coach-visibility-toggle'
@@ -13,9 +14,10 @@ export const metadata: Metadata = { title: 'Coaches Management — FitTrack' }
 
 export default async function AdminCoachesPage() {
   await requireAdmin()
-  const adminSupabase = createAdminClient()
+  const supabase = await createClient()
 
-  const { data: coaches } = await adminSupabase
+  // 1. Fetch coaches using session-authenticated client (exact same as dashboard)
+  let { data: coaches, error } = await supabase
     .from('coaches')
     .select(`
       id,
@@ -34,6 +36,37 @@ export default async function AdminCoachesPage() {
       )
     `)
     .order('created_at', { ascending: false })
+
+  // 2. Fallback to admin client if needed
+  if ((!coaches || coaches.length === 0) && !error) {
+    try {
+      const adminClient = createAdminClient()
+      const { data: adminCoaches } = await adminClient
+        .from('coaches')
+        .select(`
+          id,
+          bio,
+          is_active,
+          created_at,
+          users (
+            id,
+            full_name,
+            email,
+            phone
+          ),
+          coach_assignments (
+            id,
+            ended_at
+          )
+        `)
+        .order('created_at', { ascending: false })
+      if (adminCoaches && adminCoaches.length > 0) {
+        coaches = adminCoaches
+      }
+    } catch (e) {
+      console.error('Admin coaches fallback error:', e)
+    }
+  }
 
   return (
     <div className="page-body animate-fade-in">

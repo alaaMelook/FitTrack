@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth/session'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Users, Plus } from 'lucide-react'
 import { AdminClientActions } from '@/components/admin/admin-client-actions'
@@ -12,9 +13,9 @@ export const metadata: Metadata = { title: 'Clients Management — FitTrack' }
 
 export default async function AdminClientsPage() {
   await requireAdmin()
-  const adminSupabase = createAdminClient()
+  const supabase = await createClient()
 
-  const { data: clients } = await adminSupabase
+  let { data: clients } = await supabase
     .from('clients')
     .select(`
       id,
@@ -43,6 +44,46 @@ export default async function AdminClientsPage() {
       )
     `)
     .order('created_at', { ascending: false })
+
+  if (!clients || clients.length === 0) {
+    try {
+      const adminClient = createAdminClient()
+      const { data: adminClients } = await adminClient
+        .from('clients')
+        .select(`
+          id,
+          gender,
+          height_cm,
+          created_at,
+          users (
+            id,
+            full_name,
+            email,
+            phone,
+            is_active
+          ),
+          coach_assignments (
+            id,
+            started_at,
+            ended_at,
+            coaches (
+              users ( full_name )
+            )
+          ),
+          memberships (
+            id,
+            start_date,
+            end_date
+          )
+        `)
+        .order('created_at', { ascending: false })
+      if (adminClients && adminClients.length > 0) {
+        clients = adminClients
+      }
+    } catch (e) {
+      console.error('Admin clients fallback error:', e)
+    }
+  }
 
   const today = new Date().toISOString().split('T')[0]
 

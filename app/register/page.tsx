@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ClientRegisterForm } from './client-register-form'
 import { Dumbbell } from 'lucide-react'
 
@@ -16,8 +16,9 @@ export default async function RegisterPage() {
   let coaches: any[] = []
 
   try {
+    // 1. Try with admin client
     const adminSupabase = createAdminClient()
-    const { data, error } = await adminSupabase
+    const { data: adminData } = await adminSupabase
       .from('coaches')
       .select(`
         id,
@@ -28,15 +29,18 @@ export default async function RegisterPage() {
       .eq('is_active', true)
       .order('created_at', { ascending: true })
 
-    if (!error && data) {
-      coaches = data
+    if (adminData && adminData.length > 0) {
+      coaches = adminData
     }
   } catch (err) {
     console.error('Error fetching coaches with admin client:', err)
-    // Fallback to server anon client
+  }
+
+  // 2. Fallback to server client if still empty
+  if (coaches.length === 0) {
     try {
       const supabase = await createClient()
-      const { data } = await supabase
+      const { data: serverData } = await supabase
         .from('coaches')
         .select(`
           id,
@@ -45,7 +49,11 @@ export default async function RegisterPage() {
           users ( full_name, email )
         `)
         .eq('is_active', true)
-      if (data) coaches = data
+        .order('created_at', { ascending: true })
+
+      if (serverData && serverData.length > 0) {
+        coaches = serverData
+      }
     } catch (e) {
       console.error('Fallback error:', e)
     }
