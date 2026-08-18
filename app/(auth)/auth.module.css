@@ -1,0 +1,174 @@
+.shell {
+  display: flex;
+  min-height: 100dvh;
+}
+
+/* ─── Left branding panel ────────────────────────────────────────────────── */
+.branding {
+  flex: 1;
+  background: linear-gradient(
+    145deg,
+    #f5efeb 0%,
+    #faf8f5 50%,
+    #f8ecfa 100%
+  );
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.brandingInner {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+}
+
+/* Soft purple glow on cream bg */
+.glow1 {
+  position: absolute;
+  top: -15%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(140,86,212,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.glow2 {
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(220,149,255,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Decorative blob */
+.glow3 {
+  position: absolute;
+  top: 50%;
+  right: 10%;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(255,190,251,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 4rem;
+}
+
+.logoText {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+}
+
+/* Tagline */
+.taglineSection {
+  margin-bottom: 3rem;
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.taglineAccent {
+  color: var(--brand-600);
+}
+
+.taglineSubtext {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+/* Feature bullets */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.featureIcon {
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: rgba(140,86,212,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(140,86,212,0.15);
+}
+
+/* ─── Right form panel ───────────────────────────────────────────────────── */
+.formPanel {
+  width: 480px;
+  flex-shrink: 0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2.5rem;
+  overflow-y: auto;
+  box-shadow: -4px 0 32px rgba(140,86,212,0.08);
+}
+
+.formPanelInner {
+  width: 100%;
+  max-width: 380px;
+  animation: fadeIn var(--transition-base) both;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .formPanel { width: 420px; }
+}
+
+@media (max-width: 768px) {
+  .shell { flex-direction: column; }
+  .branding {
+    padding: 2rem;
+    flex: none;
+    min-height: 220px;
+  }
+  .tagline { font-size: var(--text-2xl); }
+  .features { display: none; }
+  .logo { margin-bottom: 1rem; }
+  .taglineSection { margin-bottom: 0; }
+  .formPanel {
+    width: 100%;
+    flex: 1;
+    padding: 2rem 1.5rem;
+    box-shadow: none;
+  }
+}
