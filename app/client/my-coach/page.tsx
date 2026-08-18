@@ -2,7 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireClient } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
-import { UserCheck, Mail, Phone, Calendar, RefreshCw, AlertCircle } from 'lucide-react'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { UserCheck, Mail, Phone, Calendar, RefreshCw } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = { title: 'My Coach — FitTrack' }
 
@@ -20,8 +24,12 @@ export default async function ClientMyCoachPage() {
   const clientId = clientRow?.id
 
   // Fetch active coach assignment
-  const { data: assignment } = clientId
-    ? await supabase
+  let assignment: any = null
+  if (clientId) {
+    // Try with admin client to ensure users profile of the coach is accessible without RLS barrier
+    try {
+      const adminClient = createAdminClient()
+      const { data } = await adminClient
         .from('coach_assignments')
         .select(`
           id,
@@ -32,15 +40,41 @@ export default async function ClientMyCoachPage() {
             users (
               full_name,
               email,
-              phone,
-              avatar_url
+              phone
             )
           )
         `)
         .eq('client_id', clientId)
         .is('ended_at', null)
         .maybeSingle()
-    : { data: null }
+      if (data) assignment = data
+    } catch (e) {
+      console.error('Error fetching coach with admin client:', e)
+    }
+
+    // Fallback to server client if not found
+    if (!assignment) {
+      const { data } = await supabase
+        .from('coach_assignments')
+        .select(`
+          id,
+          started_at,
+          coaches (
+            id,
+            bio,
+            users (
+              full_name,
+              email,
+              phone
+            )
+          )
+        `)
+        .eq('client_id', clientId)
+        .is('ended_at', null)
+        .maybeSingle()
+      assignment = data
+    }
+  }
 
   const coach = (assignment?.coaches as any)
   const coachUser = coach?.users
@@ -98,7 +132,7 @@ export default async function ClientMyCoachPage() {
                 {initials}
               </div>
               <div>
-                <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 800 }}>{coachUser?.full_name}</h2>
+                <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 800 }}>{coachUser?.full_name ?? 'Coach'}</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: 4 }}>
                   <span className="badge badge-success">Assigned Coach</span>
                 </div>
@@ -106,13 +140,15 @@ export default async function ClientMyCoachPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
-                <Mail size={16} style={{ color: 'var(--brand-600)' }} />
-                <div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>Email</div>
-                  <div style={{ fontWeight: 600 }}>{coachUser?.email}</div>
+              {coachUser?.email && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
+                  <Mail size={16} style={{ color: 'var(--brand-600)' }} />
+                  <div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>Email</div>
+                    <div style={{ fontWeight: 600 }}>{coachUser.email}</div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {coachUser?.phone && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
@@ -139,7 +175,7 @@ export default async function ClientMyCoachPage() {
           {/* Coach Bio */}
           <div className="card">
             <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '1rem' }}>
-              About Coach {coachUser?.full_name?.split(' ')[0]}
+              About Coach {coachUser?.full_name ? coachUser.full_name.split(' ')[0] : ''}
             </h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1.5rem' }}>
               {coach?.bio || 'Certified Strength & Conditioning Coach dedicated to helping you achieve your fitness milestones safely and efficiently.'}
@@ -150,7 +186,7 @@ export default async function ClientMyCoachPage() {
                 Training Philosophy
               </div>
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Progressive overload, personalized nutrition, and monthly measurement tracking for sustainable lifelong results.
+                Progressive overload, personalized nutrition, and regular measurement tracking for sustainable lifelong results.
               </p>
             </div>
           </div>

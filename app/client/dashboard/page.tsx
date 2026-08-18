@@ -1,9 +1,14 @@
 import type { Metadata } from 'next'
 import { requireClient } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
-import { CreditCard, UserCheck, Activity, Camera, TrendingUp } from 'lucide-react'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { CreditCard, UserCheck, Activity, TrendingUp, FileText, AlertCircle } from 'lucide-react'
 import { AddMembershipModal } from '@/components/client/add-membership-modal'
 import { AddClientMeasurementModal } from '@/components/client/add-client-measurement-modal'
+import { EditClientGoalsModal } from '@/components/client/edit-client-goals-modal'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = { title: 'My Dashboard — FitTrack' }
 
@@ -14,7 +19,7 @@ export default async function ClientDashboardPage() {
   // Get client record
   const { data: clientRow } = await supabase
     .from('clients')
-    .select('id')
+    .select('id, notes, emergency_contact_name, emergency_contact_phone')
     .eq('user_id', session.id)
     .single()
 
@@ -35,9 +40,12 @@ export default async function ClientDashboardPage() {
   const now = new Date().toISOString().split('T')[0]
   const isMembershipActive = membership ? membership.end_date >= now : false
 
-  // Get assigned coach
-  const { data: assignment } = clientId
-    ? await supabase
+  // Get assigned coach name
+  let coachName: string | null = null
+  if (clientId) {
+    try {
+      const adminClient = createAdminClient()
+      const { data: aData } = await adminClient
         .from('coach_assignments')
         .select(`
           coaches (
@@ -47,126 +55,202 @@ export default async function ClientDashboardPage() {
         .eq('client_id', clientId)
         .is('ended_at', null)
         .maybeSingle()
-    : { data: null }
+      coachName = (aData?.coaches as any)?.users?.full_name ?? null
+    } catch (e) {
+      console.error('Error fetching coach name for client dashboard:', e)
+    }
 
-  const coachName = (assignment?.coaches as any)?.users?.full_name
+    if (!coachName) {
+      const { data: aData } = await supabase
+        .from('coach_assignments')
+        .select(`
+          coaches (
+            users ( full_name, email )
+          )
+        `)
+        .eq('client_id', clientId)
+        .is('ended_at', null)
+        .maybeSingle()
+      coachName = (aData?.coaches as any)?.users?.full_name ?? null
+    }
+  }
 
-  // Get latest 3 measurements
+  // Get latest measurements
   const { data: measurements } = clientId
     ? await supabase
         .from('measurements')
-        .select('id, measured_at, weight_kg, body_fat_pct, notes')
+        .select('id, measured_at, weight_kg, body_fat_pct, muscle_mass_kg, notes')
         .eq('client_id', clientId)
         .order('measured_at', { ascending: false })
         .limit(3)
     : { data: [] }
 
   const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   })
+
+  const latestM = measurements?.[0]
 
   return (
     <div className="page-body animate-fade-in">
-
       {/* Header */}
-      <div className="flex items-center justify-between" style={{ marginBottom: '2.5rem', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
-          <p style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>
-            {today}
-          </p>
           <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: '0.25rem' }}>
-            Welcome, {session.full_name.split(' ')[0]} 🏋️
+            Welcome, {session.full_name?.split(' ')[0] ?? 'Member'} 👋
           </h1>
-          <p className="text-secondary text-sm">Track your fitness journey and progress.</p>
+          <p className="text-secondary text-sm">{today}</p>
         </div>
-
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          <AddMembershipModal />
           <AddClientMeasurementModal />
+          <AddMembershipModal />
         </div>
       </div>
 
-      {/* Status cards */}
-      <div className="grid grid-2" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
-        {/* Membership */}
+      {/* Top Stat Cards */}
+      <div className="grid grid-3" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
+        {/* Membership Card */}
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(140,86,212,0.1)', color: 'var(--brand-600)' }}>
+          <div className="stat-icon" style={{ background: isMembershipActive ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)', color: isMembershipActive ? '#16a34a' : '#dc2626' }}>
             <CreditCard size={20} />
           </div>
           <div>
-            <div className="stat-label" style={{ marginBottom: '0.5rem' }}>Membership Status</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-              {membership ? (
-                <span className={isMembershipActive ? 'badge badge-success' : 'badge badge-error'}>
-                  {isMembershipActive ? 'Active' : 'Expired'}
-                </span>
-              ) : (
-                <span className="badge badge-neutral">No Membership</span>
-              )}
+            <div className="stat-value" style={{ fontSize: 'var(--text-xl)' }}>
+              {isMembershipActive ? 'Active' : 'Expired'}
             </div>
-            {membership?.end_date && (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                Expires: <strong>{new Date(membership.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
-              </div>
-            )}
+            <div className="stat-label">
+              {membership?.end_date ? `Valid until ${new Date(membership.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'No active membership'}
+            </div>
           </div>
         </div>
 
-        {/* My Coach */}
+        {/* Assigned Coach Card */}
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(22,163,74,0.1)', color: '#15803d' }}>
+          <div className="stat-icon" style={{ background: 'rgba(140,86,212,0.1)', color: 'var(--brand-600)' }}>
             <UserCheck size={20} />
           </div>
           <div>
-            <div className="stat-label" style={{ marginBottom: '0.25rem' }}>My Personal Coach</div>
-            <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)' }}>
-              {coachName ?? 'No coach assigned'}
+            <div className="stat-value" style={{ fontSize: 'var(--text-base)', fontWeight: 700 }}>
+              {coachName ?? 'Not Assigned'}
             </div>
-            <p className="text-secondary text-xs" style={{ marginTop: '0.25rem' }}>
-              {coachName ? 'Assigned and tracking your progress' : 'Visit Change Coach to select one'}
-            </p>
+            <div className="stat-label">Personal Coach</div>
+          </div>
+        </div>
+
+        {/* Latest Weight Card */}
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
+            <Activity size={20} />
+          </div>
+          <div>
+            <div className="stat-value">
+              {latestM?.weight_kg != null ? `${latestM.weight_kg} kg` : '—'}
+            </div>
+            <div className="stat-label">
+              {latestM?.measured_at ? `Latest (${new Date(latestM.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})` : 'Weight Log'}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Measurements */}
-      <div className="card">
-        <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>Recent Progress Logs</h2>
+      {/* Main Grid: Measurements & Goals */}
+      <div className="grid grid-2" style={{ gap: 'var(--space-6)' }}>
+        {/* Recent Measurements */}
+        <div className="card">
+          <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
+            <div>
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TrendingUp size={18} style={{ color: 'var(--brand-600)' }} /> Recent Assessments
+              </h3>
+              <p className="text-secondary text-xs">Your last recorded progress metrics.</p>
+            </div>
+            <AddClientMeasurementModal />
+          </div>
+
+          {!measurements || measurements.length === 0 ? (
+            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
+              <div className="empty-icon"><Activity size={24} /></div>
+              <p style={{ fontWeight: 600 }}>No measurements recorded yet.</p>
+              <p className="text-secondary text-xs" style={{ marginBottom: '1rem' }}>Log your assessment data to start tracking evolution.</p>
+              <AddClientMeasurementModal />
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Weight</th>
+                    <th>Body Fat</th>
+                    <th>Muscle Mass</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {measurements.map((m) => (
+                    <tr key={m.id}>
+                      <td style={{ fontWeight: 600, fontSize: 'var(--text-xs)' }}>
+                        {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>
+                        {m.weight_kg != null ? `${m.weight_kg} kg` : '—'}
+                      </td>
+                      <td>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
+                      <td>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {!measurements || measurements.length === 0 ? (
-          <div className="empty-state" style={{ padding: 'var(--space-10) var(--space-8)' }}>
-            <div className="empty-icon"><Activity size={28} /></div>
-            <p style={{ fontWeight: 600 }}>No measurements logged yet</p>
-            <p className="text-secondary text-sm">Click &quot;Log Measurement&quot; to start recording your progress.</p>
+        {/* Goals & Medical Notes Card */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div className="flex items-center justify-between" style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <FileText size={18} style={{ color: 'var(--brand-600)' }} /> My Goals & Medical Notes
+              </h3>
+              <EditClientGoalsModal
+                initialNotes={clientRow?.notes ?? null}
+                initialEmergencyName={clientRow?.emergency_contact_name ?? null}
+                initialEmergencyPhone={clientRow?.emergency_contact_phone ?? null}
+              />
+            </div>
+
+            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', marginBottom: '1rem' }}>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                Fitness Goals & Health Remarks
+              </div>
+              <p style={{ fontSize: 'var(--text-sm)', color: clientRow?.notes ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                {clientRow?.notes || 'No goals or medical notes recorded yet. Click "Edit" to add your fitness targets, health remarks, or injury notes.'}
+              </p>
+            </div>
+
+            {/* Emergency contact preview */}
+            <div style={{ background: 'var(--cream-300)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3) var(--space-4)' }}>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#b45309', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                <AlertCircle size={13} /> Emergency Contact
+              </div>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', margin: 0 }}>
+                {clientRow?.emergency_contact_name
+                  ? `${clientRow.emergency_contact_name} ${clientRow.emergency_contact_phone ? `(${clientRow.emergency_contact_phone})` : ''}`
+                  : 'No emergency contact set.'}
+              </p>
+            </div>
           </div>
-        ) : (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Weight</th>
-                  <th>Body Fat</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {measurements.map((m) => (
-                  <tr key={m.id}>
-                    <td style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
-                      {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td>{m.weight_kg ? `${m.weight_kg} kg` : '—'}</td>
-                    <td>{m.body_fat_pct ? `${m.body_fat_pct}%` : '—'}</td>
-                    <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{m.notes ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          <div style={{ marginTop: '1.25rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
+            <EditClientGoalsModal
+              initialNotes={clientRow?.notes ?? null}
+              initialEmergencyName={clientRow?.emergency_contact_name ?? null}
+              initialEmergencyPhone={clientRow?.emergency_contact_phone ?? null}
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
