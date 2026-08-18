@@ -326,6 +326,8 @@ export type Database = {
           hips_cm: number | null
           thigh_cm: number | null
           arm_cm: number | null
+          calf_cm?: number | null
+          back_cm?: number | null
           notes: string | null
           created_at: string
         }
@@ -342,11 +344,25 @@ export type Database = {
           hips_cm?: number | null
           thigh_cm?: number | null
           arm_cm?: number | null
+          calf_cm?: number | null
+          back_cm?: number | null
           notes?: string | null
           created_at?: string
         }
         Update: {
-          [key: string]: never
+          measured_at?: string
+          weight_kg?: number | null
+          body_fat_pct?: number | null
+          muscle_mass_kg?: number | null
+          chest_cm?: number | null
+          waist_cm?: number | null
+          hips_cm?: number | null
+          thigh_cm?: number | null
+          arm_cm?: number | null
+          calf_cm?: number | null
+          back_cm?: number | null
+          notes?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

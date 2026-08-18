@@ -49,21 +49,21 @@ export async function addClientSelfMeasurementAction(prevState: any, formData: F
     if (backCm) extraDetails.push(`Back: ${backCm}cm`)
     if (userNotes) extraDetails.push(userNotes)
 
-    const formattedNotes = extraDetails.length > 0 ? extraDetails.join(' | ') : null
-
     const { error: insertErr } = await adminSupabase.from('measurements').insert({
       client_id: clientRow.id,
       recorded_by_user_id: session.id,
       measured_at: measuredAt,
       chest_cm: chestCm,
       arm_cm: armCm,
-      hips_cm: glutesCm,  // Glutes stored in hips_cm
-      waist_cm: absCm,     // Abs stored in waist_cm
-      thigh_cm: legCm,     // Leg stored in thigh_cm
+      hips_cm: glutesCm,
+      waist_cm: absCm,
+      thigh_cm: legCm,
+      calf_cm: calfCm,
+      back_cm: backCm,
       weight_kg: weightKg,
       body_fat_pct: bodyFatPct,
       muscle_mass_kg: muscleMassKg,
-      notes: formattedNotes,
+      notes: userNotes || null,
     })
 
     if (insertErr) {
@@ -115,13 +115,6 @@ export async function editClientMeasurementAction(prevState: any, formData: Form
 
     const measuredAt = measuredAtStr ? new Date(measuredAtStr).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
 
-    const extraDetails: string[] = []
-    if (calfCm) extraDetails.push(`Calf: ${calfCm}cm`)
-    if (backCm) extraDetails.push(`Back: ${backCm}cm`)
-    if (userNotes) extraDetails.push(userNotes)
-
-    const formattedNotes = extraDetails.length > 0 ? extraDetails.join(' | ') : null
-
     const { error: updateErr } = await adminSupabase
       .from('measurements')
       .update({
@@ -131,10 +124,12 @@ export async function editClientMeasurementAction(prevState: any, formData: Form
         hips_cm: glutesCm,
         waist_cm: absCm,
         thigh_cm: legCm,
+        calf_cm: calfCm,
+        back_cm: backCm,
         weight_kg: weightKg,
         body_fat_pct: bodyFatPct,
         muscle_mass_kg: muscleMassKg,
-        notes: formattedNotes,
+        notes: userNotes || null,
       } as any)
       .eq('id', measurementId)
       .eq('client_id', clientRow.id)

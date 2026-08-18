@@ -12,6 +12,8 @@ interface Measurement {
   hips_cm: number | null
   waist_cm: number | null
   thigh_cm: number | null
+  calf_cm?: number | null
+  back_cm?: number | null
   weight_kg: number | null
   body_fat_pct: number | null
   muscle_mass_kg: number | null
@@ -23,17 +25,6 @@ export function EditMeasurementActions({ m, clientId }: { m: Measurement; client
   const [showDelete, setShowDelete] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-
-  // Parse extra fields from notes string (Calf: Xcm | Back: Xcm | notes)
-  const parsedNotes = m.notes ?? ''
-  const calfMatch = parsedNotes.match(/Calf:\s*([\d.]+)cm/)
-  const backMatch = parsedNotes.match(/Back:\s*([\d.]+)cm/)
-  const cleanNotes = parsedNotes
-    .replace(/Calf:\s*[\d.]+cm\s*\|?\s*/g, '')
-    .replace(/Back:\s*[\d.]+cm\s*\|?\s*/g, '')
-    .trim()
-    .replace(/^\|/, '')
-    .trim()
 
   const handleDelete = () => {
     setError(null)
@@ -117,14 +108,14 @@ export function EditMeasurementActions({ m, clientId }: { m: Measurement; client
               </div>
               <div className="form-group">
                 <label>Calf (cm)</label>
-                <input name="calfCm" type="number" step="0.1" defaultValue={calfMatch ? calfMatch[1] : ''} placeholder="—" />
+                <input name="calfCm" type="number" step="0.1" defaultValue={m.calf_cm ?? ''} placeholder="—" />
               </div>
             </div>
 
             <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
               <div className="form-group">
                 <label>Back (cm)</label>
-                <input name="backCm" type="number" step="0.1" defaultValue={backMatch ? backMatch[1] : ''} placeholder="—" />
+                <input name="backCm" type="number" step="0.1" defaultValue={m.back_cm ?? ''} placeholder="—" />
               </div>
               <div className="form-group">
                 <label>Weight (kg)</label>
@@ -145,8 +136,9 @@ export function EditMeasurementActions({ m, clientId }: { m: Measurement; client
 
             <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
               <label>Coach Notes</label>
-              <textarea name="notes" rows={2} defaultValue={cleanNotes} placeholder="Optional..." />
+              <textarea name="notes" rows={2} defaultValue={m.notes ?? ''} placeholder="Optional..." />
             </div>
+
 
             <div className="flex justify-between" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-4)' }}>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIsEditing(false)} disabled={isPending}>

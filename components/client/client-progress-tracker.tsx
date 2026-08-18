@@ -31,9 +31,12 @@ export type Measurement = {
   hips_cm: number | null
   waist_cm: number | null
   thigh_cm: number | null
+  calf_cm?: number | null
+  back_cm?: number | null
   notes: string | null
   created_at?: string
 }
+
 
 interface Props {
   measurements: Measurement[]
@@ -440,9 +443,11 @@ export function ClientProgressTracker({ measurements }: Props) {
                   <th>Date</th>
                   <th>Chest</th>
                   <th>Arm</th>
-                  <th>Glutes (Hips)</th>
-                  <th>Abs (Waist)</th>
-                  <th>Leg (Thigh)</th>
+                  <th>Glutes</th>
+                  <th>Abs</th>
+                  <th>Leg</th>
+                  <th>Calf</th>
+                  <th>Back</th>
                   <th>Notes</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
@@ -456,6 +461,8 @@ export function ClientProgressTracker({ measurements }: Props) {
                   const hDelta = m.hips_cm != null && prev?.hips_cm != null ? m.hips_cm - prev.hips_cm : null
                   const wDelta = m.waist_cm != null && prev?.waist_cm != null ? m.waist_cm - prev.waist_cm : null
                   const tDelta = m.thigh_cm != null && prev?.thigh_cm != null ? m.thigh_cm - prev.thigh_cm : null
+                  const calfDelta = m.calf_cm != null && prev?.calf_cm != null ? m.calf_cm - prev.calf_cm : null
+                  const backDelta = m.back_cm != null && prev?.back_cm != null ? m.back_cm - prev.back_cm : null
 
                   return (
                     <tr key={m.id}>
@@ -504,6 +511,22 @@ export function ClientProgressTracker({ measurements }: Props) {
                         <div>{m.thigh_cm != null ? `${m.thigh_cm} cm` : '—'}</div>
                         {prev && tDelta != null && Math.abs(tDelta) >= 0.1 && (
                           <div style={{ marginTop: 2 }}>{renderDeltaBadge(tDelta, 'cm')}</div>
+                        )}
+                      </td>
+
+                      {/* Calf */}
+                      <td>
+                        <div>{m.calf_cm != null ? `${m.calf_cm} cm` : '—'}</div>
+                        {prev && calfDelta != null && Math.abs(calfDelta) >= 0.1 && (
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(calfDelta, 'cm')}</div>
+                        )}
+                      </td>
+
+                      {/* Back */}
+                      <td>
+                        <div>{m.back_cm != null ? `${m.back_cm} cm` : '—'}</div>
+                        {prev && backDelta != null && Math.abs(backDelta) >= 0.1 && (
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(backDelta, 'cm')}</div>
                         )}
                       </td>
 

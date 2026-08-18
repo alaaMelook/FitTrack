@@ -38,11 +38,6 @@ export async function addMeasurementAction(prevState: any, formData: FormData) {
       .some(val => val !== null && val !== '')
     if (!hasAnyField) return { success: false, error: 'Please enter at least one measurement.' }
 
-    const extraDetails: string[] = []
-    if (f.calfCm) extraDetails.push(`Calf: ${f.calfCm}cm`)
-    if (f.backCm) extraDetails.push(`Back: ${f.backCm}cm`)
-    if (f.coachNotes) extraDetails.push(f.coachNotes)
-
     const { error: insertError } = await adminSupabase.from('measurements').insert({
       client_id: clientId,
       recorded_by_user_id: session.id,
@@ -52,10 +47,12 @@ export async function addMeasurementAction(prevState: any, formData: FormData) {
       hips_cm: f.glutesCm,
       waist_cm: f.absCm,
       thigh_cm: f.legCm,
+      calf_cm: f.calfCm,
+      back_cm: f.backCm,
       weight_kg: f.weightKg,
       body_fat_pct: f.bodyFatPct,
       muscle_mass_kg: f.muscleMassKg,
-      notes: extraDetails.length > 0 ? extraDetails.join(' | ') : null,
+      notes: f.coachNotes || null,
     })
 
     if (insertError) return { success: false, error: insertError.message }
@@ -80,11 +77,6 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
 
     const f = parseMeasurementFields(formData)
 
-    const extraDetails: string[] = []
-    if (f.calfCm) extraDetails.push(`Calf: ${f.calfCm}cm`)
-    if (f.backCm) extraDetails.push(`Back: ${f.backCm}cm`)
-    if (f.coachNotes) extraDetails.push(f.coachNotes)
-
     const { error: updateError } = await adminSupabase
       .from('measurements')
       .update({
@@ -94,10 +86,12 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
         hips_cm: f.glutesCm,
         waist_cm: f.absCm,
         thigh_cm: f.legCm,
+        calf_cm: f.calfCm,
+        back_cm: f.backCm,
         weight_kg: f.weightKg,
         body_fat_pct: f.bodyFatPct,
         muscle_mass_kg: f.muscleMassKg,
-        notes: extraDetails.length > 0 ? extraDetails.join(' | ') : null,
+        notes: f.coachNotes || null,
       } as any)
       .eq('id', measurementId)
 
@@ -109,6 +103,7 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
     return { success: false, error: err.message || 'An unexpected error occurred.' }
   }
 }
+
 
 /** Coach can delete a measurement belonging to their client */
 export async function deleteMeasurementAction(measurementId: string, clientId: string) {
