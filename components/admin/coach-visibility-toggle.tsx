@@ -35,11 +35,11 @@ export function CoachVisibilityToggle({ coachId, initialIsActive }: { coachId: s
     >
       {isActive ? (
         <>
-          <Eye size={13} style={{ color: '#16a34a' }} /> Visible (ظاهر)
+          <Eye size={13} style={{ color: '#16a34a' }} /> Visible
         </>
       ) : (
         <>
-          <EyeOff size={13} style={{ color: '#b91c1c' }} /> Hidden (مخفي)
+          <EyeOff size={13} style={{ color: '#b91c1c' }} /> Hidden
         </>
       )}
     </button>
