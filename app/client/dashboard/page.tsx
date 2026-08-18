@@ -178,31 +178,62 @@ export default async function ClientDashboardPage() {
               <AddClientMeasurementModal />
             </div>
           ) : (
-            <div className="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Weight</th>
-                    <th>Body Fat</th>
-                    <th>Muscle Mass</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {measurements.map((m) => (
-                    <tr key={m.id}>
-                      <td style={{ fontWeight: 600, fontSize: 'var(--text-xs)' }}>
-                        {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </td>
-                      <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>
-                        {m.weight_kg != null ? `${m.weight_kg} kg` : '—'}
-                      </td>
-                      <td>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
-                      <td>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
+            <div>
+              <div className="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Weight</th>
+                      <th>Body Fat</th>
+                      <th>Muscle Mass</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {measurements.map((m, idx) => {
+                      const prev = measurements[idx + 1]
+                      const wDiff = m.weight_kg != null && prev?.weight_kg != null ? m.weight_kg - prev.weight_kg : null
+                      return (
+                        <tr key={m.id}>
+                          <td style={{ fontWeight: 600, fontSize: 'var(--text-xs)' }}>
+                            {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {idx === 0 && (
+                              <span className="badge badge-brand" style={{ marginLeft: 6, fontSize: '9px', padding: '1px 5px' }}>
+                                Latest
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>
+                            {m.weight_kg != null ? `${m.weight_kg} kg` : '—'}
+                            {prev && wDiff != null && Math.abs(wDiff) >= 0.1 && (
+                              <span
+                                style={{
+                                  marginLeft: 6,
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  color: wDiff < 0 ? '#15803d' : '#b91c1c',
+                                }}
+                              >
+                                {wDiff > 0 ? `+${wDiff.toFixed(1)}` : wDiff.toFixed(1)}
+                              </span>
+                            )}
+                          </td>
+                          <td>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
+                          <td>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div style={{ marginTop: '0.875rem', textAlign: 'right' }}>
+                <a
+                  href="/client/my-progress"
+                  style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--brand-700)', textDecoration: 'none' }}
+                >
+                  View Full Evolution & Delta Analysis →
+                </a>
+              </div>
             </div>
           )}
         </div>
