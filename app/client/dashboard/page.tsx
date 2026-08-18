@@ -210,44 +210,28 @@ export default async function ClientDashboardPage() {
         {/* Goals & Medical Notes Card */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div className="flex items-center justify-between" style={{ marginBottom: '1rem' }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
               <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <FileText size={18} style={{ color: 'var(--brand-600)' }} /> My Goals & Medical Notes
               </h3>
               <EditClientGoalsModal
                 initialNotes={clientRow?.notes ?? null}
-                initialEmergencyName={clientRow?.emergency_contact_name ?? null}
-                initialEmergencyPhone={clientRow?.emergency_contact_phone ?? null}
               />
             </div>
 
-            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', marginBottom: '1rem' }}>
-              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)' }}>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                 Fitness Goals & Health Remarks
               </div>
-              <p style={{ fontSize: 'var(--text-sm)', color: clientRow?.notes ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-                {clientRow?.notes || 'No goals or medical notes recorded yet. Click "Edit" to add your fitness targets, health remarks, or injury notes.'}
-              </p>
-            </div>
-
-            {/* Emergency contact preview */}
-            <div style={{ background: 'var(--cream-300)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-3) var(--space-4)' }}>
-              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#b45309', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-                <AlertCircle size={13} /> Emergency Contact
-              </div>
-              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', margin: 0 }}>
-                {clientRow?.emergency_contact_name
-                  ? `${clientRow.emergency_contact_name} ${clientRow.emergency_contact_phone ? `(${clientRow.emergency_contact_phone})` : ''}`
-                  : 'No emergency contact set.'}
+              <p style={{ fontSize: 'var(--text-sm)', color: clientRow?.notes ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.7, margin: 0 }}>
+                {clientRow?.notes || 'No goals or medical notes recorded yet. Click "Edit Goals & Notes" to add your fitness targets, health remarks, or injury notes.'}
               </p>
             </div>
           </div>
 
-          <div style={{ marginTop: '1.25rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ marginTop: '1.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'flex-end' }}>
             <EditClientGoalsModal
               initialNotes={clientRow?.notes ?? null}
-              initialEmergencyName={clientRow?.emergency_contact_name ?? null}
-              initialEmergencyPhone={clientRow?.emergency_contact_phone ?? null}
             />
           </div>
         </div>

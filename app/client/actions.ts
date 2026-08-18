@@ -10,15 +10,11 @@ export async function updateClientGoalsAndNotesAction(prevState: any, formData: 
     const adminSupabase = createAdminClient()
 
     const notes = (formData.get('notes') as string)?.trim() || null
-    const emergencyName = (formData.get('emergencyContactName') as string)?.trim() || null
-    const emergencyPhone = (formData.get('emergencyContactPhone') as string)?.trim() || null
 
     const { error } = await adminSupabase
       .from('clients')
       .update({
         notes: notes,
-        emergency_contact_name: emergencyName,
-        emergency_contact_phone: emergencyPhone,
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', session.id)
@@ -36,3 +32,4 @@ export async function updateClientGoalsAndNotesAction(prevState: any, formData: 
     return { success: false, error: err.message || 'Failed to update goals and notes.' }
   }
 }
+

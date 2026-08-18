@@ -6,15 +6,9 @@ import { updateClientGoalsAndNotesAction } from '@/app/client/actions'
 
 interface Props {
   initialNotes: string | null
-  initialEmergencyName: string | null
-  initialEmergencyPhone: string | null
 }
 
-export function EditClientGoalsModal({
-  initialNotes,
-  initialEmergencyName,
-  initialEmergencyPhone,
-}: Props) {
+export function EditClientGoalsModal({ initialNotes }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -97,40 +91,17 @@ export function EditClientGoalsModal({
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
-                <label htmlFor="client-notes" style={{ fontWeight: 600 }}>
-                  Fitness Goals & Medical Notes / Injuries
+              <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
+                <label htmlFor="client-notes" style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
+                  Fitness Goals & Medical Notes / Health Remarks
                 </label>
                 <textarea
                   id="client-notes"
                   name="notes"
-                  rows={4}
+                  rows={5}
                   defaultValue={initialNotes || ''}
                   placeholder="e.g. Goal: Build muscle and lose 5kg fat. Medical: Minor lower back stiffness, no heavy deadlifts..."
                 />
-              </div>
-
-              <div className="form-row" style={{ marginBottom: 'var(--space-6)' }}>
-                <div className="form-group">
-                  <label htmlFor="client-emergency-name">Emergency Contact Name</label>
-                  <input
-                    id="client-emergency-name"
-                    name="emergencyContactName"
-                    type="text"
-                    defaultValue={initialEmergencyName || ''}
-                    placeholder="e.g. Mohamed Ali (Brother)"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="client-emergency-phone">Emergency Phone</label>
-                  <input
-                    id="client-emergency-phone"
-                    name="emergencyContactPhone"
-                    type="tel"
-                    defaultValue={initialEmergencyPhone || ''}
-                    placeholder="+20 100 000 0000"
-                  />
-                </div>
               </div>
 
               <div className="flex justify-between items-center" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-4)' }}>
@@ -157,3 +128,4 @@ export function EditClientGoalsModal({
     </>
   )
 }
+

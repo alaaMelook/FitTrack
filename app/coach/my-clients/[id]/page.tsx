@@ -275,34 +275,15 @@ export default async function CoachClientDetailPage({
         )}
       </div>
 
-      {/* Notes / Emergency Contact */}
-      <div className="grid grid-2" style={{ gap: 'var(--space-6)' }}>
-        <div className="card">
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FileText size={16} style={{ color: 'var(--brand-600)' }} />
-            Client Goals & Medical Notes
-          </h3>
-          <p style={{ fontSize: 'var(--text-sm)', color: client.notes ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.6 }}>
-            {client.notes || 'No special notes recorded.'}
-          </p>
-        </div>
-
-        <div className="card">
-          <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertCircle size={16} style={{ color: '#b45309' }} />
-            Emergency Contact
-          </h3>
-          {client.emergency_contact_name ? (
-            <div style={{ fontSize: 'var(--text-sm)', lineHeight: 1.6 }}>
-              <div><strong>Name:</strong> {client.emergency_contact_name}</div>
-              {client.emergency_contact_phone && (
-                <div><strong>Phone:</strong> {client.emergency_contact_phone}</div>
-              )}
-            </div>
-          ) : (
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>No emergency contact provided.</p>
-          )}
-        </div>
+      {/* Client Goals & Medical Notes */}
+      <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
+        <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FileText size={16} style={{ color: 'var(--brand-600)' }} />
+          Client Goals & Medical Notes
+        </h3>
+        <p style={{ fontSize: 'var(--text-sm)', color: client.notes ? 'var(--text-primary)' : 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+          {client.notes || 'No special goals or medical notes recorded by client.'}
+        </p>
       </div>
     </div>
   )
