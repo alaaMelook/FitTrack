@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireClient } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function addClientMembershipAction(prevState: any, formData: FormData) {
   try {
     const session = await requireClient()
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     const planName = (formData.get('planName') as string)?.trim() || 'Gym Membership'
     const startDate = formData.get('startDate') as string
@@ -18,7 +18,7 @@ export async function addClientMembershipAction(prevState: any, formData: FormDa
     }
 
     // Get client record
-    const { data: clientRow } = await supabase
+    const { data: clientRow } = await adminSupabase
       .from('clients')
       .select('id, gym_id')
       .eq('user_id', session.id)
@@ -30,7 +30,7 @@ export async function addClientMembershipAction(prevState: any, formData: FormDa
 
     const defaultGymId = clientRow.gym_id || 'a0000000-0000-0000-0000-000000000001'
 
-    const { error: insertErr } = await supabase.from('memberships').insert({
+    const { error: insertErr } = await adminSupabase.from('memberships').insert({
       client_id: clientRow.id,
       gym_id: defaultGymId,
       created_by_user_id: session.id,

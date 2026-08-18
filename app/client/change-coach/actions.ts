@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireClient } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function requestCoachChangeAction(prevState: any, formData: FormData) {
   try {
     const session = await requireClient()
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     const reason = formData.get('reason') as string
     const preferredCoachId = (formData.get('preferredCoachId') as string) || null
@@ -17,7 +17,7 @@ export async function requestCoachChangeAction(prevState: any, formData: FormDat
     }
 
     // Get client record
-    const { data: clientRow } = await supabase
+    const { data: clientRow } = await adminSupabase
       .from('clients')
       .select('id')
       .eq('user_id', session.id)
@@ -28,7 +28,7 @@ export async function requestCoachChangeAction(prevState: any, formData: FormDat
     }
 
     // Get current active assignment
-    const { data: assignment } = await supabase
+    const { data: assignment } = await adminSupabase
       .from('coach_assignments')
       .select('coach_id')
       .eq('client_id', clientRow.id)
@@ -40,7 +40,7 @@ export async function requestCoachChangeAction(prevState: any, formData: FormDat
     }
 
     // Check for existing pending request
-    const { data: pendingReq } = await supabase
+    const { data: pendingReq } = await adminSupabase
       .from('coach_change_requests')
       .select('id')
       .eq('client_id', clientRow.id)
@@ -48,10 +48,10 @@ export async function requestCoachChangeAction(prevState: any, formData: FormDat
       .maybeSingle()
 
     if (pendingReq) {
-      return { success: false, error: 'You already have a pending coach change request under review by the admin.' }
+      return { success: false, error: 'You already have a pending coach change request under review.' }
     }
 
-    const { error: insertErr } = await supabase
+    const { error: insertErr } = await adminSupabase
       .from('coach_change_requests')
       .insert({
         client_id: clientRow.id,

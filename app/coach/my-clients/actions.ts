@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireCoach } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 function parseMeasurementFields(formData: FormData) {
   const measuredAtStr = formData.get('measuredAt') as string
@@ -27,7 +27,7 @@ function parseMeasurementFields(formData: FormData) {
 export async function addMeasurementAction(prevState: any, formData: FormData) {
   try {
     const session = await requireCoach()
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     const clientId = formData.get('clientId') as string
     if (!clientId) return { success: false, error: 'Client ID is required.' }
@@ -43,7 +43,7 @@ export async function addMeasurementAction(prevState: any, formData: FormData) {
     if (f.backCm) extraDetails.push(`Back: ${f.backCm}cm`)
     if (f.coachNotes) extraDetails.push(f.coachNotes)
 
-    const { error: insertError } = await supabase.from('measurements').insert({
+    const { error: insertError } = await adminSupabase.from('measurements').insert({
       client_id: clientId,
       recorded_by_user_id: session.id,
       measured_at: f.measuredAt,
@@ -71,8 +71,8 @@ export async function addMeasurementAction(prevState: any, formData: FormData) {
 /** Coach can edit an existing measurement belonging to their client */
 export async function editMeasurementAction(prevState: any, formData: FormData) {
   try {
-    const session = await requireCoach()
-    const supabase = await createClient()
+    await requireCoach()
+    const adminSupabase = createAdminClient()
 
     const measurementId = formData.get('measurementId') as string
     const clientId = formData.get('clientId') as string
@@ -85,7 +85,7 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
     if (f.backCm) extraDetails.push(`Back: ${f.backCm}cm`)
     if (f.coachNotes) extraDetails.push(f.coachNotes)
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminSupabase
       .from('measurements')
       .update({
         measured_at: f.measuredAt,
@@ -114,9 +114,9 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
 export async function deleteMeasurementAction(measurementId: string, clientId: string) {
   try {
     await requireCoach()
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('measurements')
       .delete()
       .eq('id', measurementId)
@@ -129,3 +129,4 @@ export async function deleteMeasurementAction(measurementId: string, clientId: s
     return { success: false, error: err.message }
   }
 }
+

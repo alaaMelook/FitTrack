@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireClient } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function addClientSelfMeasurementAction(prevState: any, formData: FormData) {
   try {
     const session = await requireClient()
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     const measuredAtStr = formData.get('measuredAt') as string
     const chestCm = formData.get('chestCm') ? parseFloat(formData.get('chestCm') as string) : null
@@ -31,7 +31,7 @@ export async function addClientSelfMeasurementAction(prevState: any, formData: F
     }
 
     // Get client record
-    const { data: clientRow } = await supabase
+    const { data: clientRow } = await adminSupabase
       .from('clients')
       .select('id')
       .eq('user_id', session.id)
@@ -51,7 +51,7 @@ export async function addClientSelfMeasurementAction(prevState: any, formData: F
 
     const formattedNotes = extraDetails.length > 0 ? extraDetails.join(' | ') : null
 
-    const { error: insertErr } = await supabase.from('measurements').insert({
+    const { error: insertErr } = await adminSupabase.from('measurements').insert({
       client_id: clientRow.id,
       recorded_by_user_id: session.id,
       measured_at: measuredAt,
