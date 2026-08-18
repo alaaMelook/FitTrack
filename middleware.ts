@@ -23,26 +23,15 @@ const KNOWN_URL = 'https://msetuzytnckcufrrsmed.supabase.co'
 const KNOWN_ANON =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zZXR1enl0bmNrY3VmcnJzbWVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwNzQyNTgsImV4cCI6MjEwMjY1MDI1OH0.g3YWZOuyXEu-P4NoVwLDuHcZm7RLvgQl13SLqn9gtb4'
 
-function sanitize(val?: string): string {
-  if (!val) return ''
-  return val.trim().replace(/^["']|["']$/g, '')
-}
-
 export async function middleware(request: NextRequest) {
-  const envUrl = sanitize(process.env.NEXT_PUBLIC_SUPABASE_URL)
-  const envAnon = sanitize(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-
-  const supabaseUrl = envUrl || KNOWN_URL
-  const supabaseAnonKey = envAnon && envAnon.split('.').length === 3 ? envAnon : KNOWN_ANON
-
-
   let supabaseResponse = NextResponse.next({ request })
 
   try {
     const supabase = createServerClient<Database>(
-      supabaseUrl,
-      supabaseAnonKey,
+      KNOWN_URL,
+      KNOWN_ANON,
       {
+
         cookies: {
           getAll() {
             return request.cookies.getAll()
