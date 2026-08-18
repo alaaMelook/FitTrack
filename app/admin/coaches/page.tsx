@@ -133,11 +133,15 @@ export default async function AdminCoachesPage() {
                 </div>
 
                 {/* Footer */}
-                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--brand-700)' }}>
-                      <Users size={14} /> {activeClientsCount} Active Client{activeClientsCount !== 1 ? 's' : ''}
-                    </div>
+                    <Link
+                      href={`/admin/coaches/${c.id}`}
+                      style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--brand-700)', textDecoration: 'none' }}
+                      title="View coach profile and their assigned clients progress"
+                    >
+                      <Users size={14} /> {activeClientsCount} Active Client{activeClientsCount !== 1 ? 's' : ''} →
+                    </Link>
                     <CoachVisibilityToggle coachId={c.id} initialIsActive={c.is_active} />
                   </div>
 
