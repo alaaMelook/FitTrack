@@ -5,11 +5,9 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Users,
-  Activity,
-  Camera,
+  UserCheck,
   User,
   LogOut,
-  Dumbbell,
   Flame,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -18,6 +16,7 @@ import type { SessionUser } from '@/lib/auth/session'
 const navItems = [
   { href: '/coach/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/coach/my-clients', label: 'My Clients', icon: Users },
+  { href: '/coach/requests', label: 'Client Requests', icon: UserCheck },
   { href: '/coach/profile', label: 'My Profile', icon: User },
 ]
 

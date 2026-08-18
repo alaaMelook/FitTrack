@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { requireClient } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
-import { RefreshCw, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { RefreshCw, Clock, CheckCircle2, XCircle, UserCheck } from 'lucide-react'
 import { ChangeCoachForm } from '@/components/client/change-coach-form'
 
 export const metadata: Metadata = { title: 'Request Coach Change — FitTrack' }
@@ -19,7 +19,7 @@ export default async function ClientChangeCoachPage() {
 
   const clientId = clientRow?.id
 
-  // Fetch past requests
+  // Fetch past requests with requested coach name
   const { data: pastRequests } = clientId
     ? await supabase
         .from('coach_change_requests')
@@ -28,7 +28,10 @@ export default async function ClientChangeCoachPage() {
           reason,
           status,
           review_notes,
-          created_at
+          created_at,
+          requested_coaches:requested_coach_id (
+            users ( full_name )
+          )
         `)
         .eq('client_id', clientId)
         .order('created_at', { ascending: false })
@@ -54,9 +57,9 @@ export default async function ClientChangeCoachPage() {
   }))
 
   const statusBadge = (status: string) => {
-    if (status === 'approved') return <span className="badge badge-success">Approved</span>
-    if (status === 'rejected') return <span className="badge badge-error">Rejected</span>
-    return <span className="badge badge-warning">Pending Review</span>
+    if (status === 'approved') return <span className="badge badge-success">Accepted & Assigned</span>
+    if (status === 'rejected') return <span className="badge badge-error">Declined</span>
+    return <span className="badge badge-warning">Waiting for Coach Acceptance</span>
   }
 
   return (
@@ -64,7 +67,7 @@ export default async function ClientChangeCoachPage() {
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: '0.25rem' }}>Change Coach Request</h1>
         <p className="text-secondary text-sm">
-          Request a reassignment to another coach. All requests are reviewed by gym management.
+          Select a new coach you would like to train with. Your request will be sent to the coach for their acceptance.
         </p>
       </div>
 
@@ -88,32 +91,40 @@ export default async function ClientChangeCoachPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {pastRequests.map((req) => (
-                  <div
-                    key={req.id}
-                    style={{
-                      padding: 'var(--space-4)',
-                      borderRadius: 'var(--radius-lg)',
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-elevated)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between" style={{ marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-                        {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
-                      {statusBadge(req.status)}
-                    </div>
-                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', marginBottom: req.review_notes ? '0.5rem' : 0 }}>
-                      <strong>Reason:</strong> {req.reason}
-                    </p>
-                    {req.review_notes && (
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', background: 'var(--cream-300)', padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-sm)' }}>
-                        <strong>Management Note:</strong> {req.review_notes}
+                {pastRequests.map((req: any) => {
+                  const requestedCoachName = req.requested_coaches?.users?.full_name
+                  return (
+                    <div
+                      key={req.id}
+                      style={{
+                        padding: 'var(--space-4)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-elevated)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between" style={{ marginBottom: '0.5rem', flexWrap: 'wrap', gap: 6 }}>
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                          {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                        {statusBadge(req.status)}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {requestedCoachName && (
+                        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--brand-700)', fontWeight: 600, marginBottom: 4 }}>
+                          Requested Coach: {requestedCoachName}
+                        </p>
+                      )}
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginBottom: req.review_notes ? '0.5rem' : 0 }}>
+                        <strong>Reason:</strong> {req.reason}
+                      </p>
+                      {req.review_notes && (
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', background: 'var(--cream-300)', padding: 'var(--space-2) var(--space-3)', borderRadius: 'var(--radius-sm)' }}>
+                          <strong>Coach Note:</strong> {req.review_notes}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

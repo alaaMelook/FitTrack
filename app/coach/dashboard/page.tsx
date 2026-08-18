@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { requireCoach } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
-import { Users, Activity, TrendingUp, Calendar, ChevronRight } from 'lucide-react'
+import { Users, Activity, UserCheck, Calendar, ChevronRight, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { AddMeasurementModal } from '@/components/coach/add-measurement-modal'
+import { CoachRequestActions } from '@/components/coach/coach-request-actions'
 
 export const metadata: Metadata = { title: 'Coach Dashboard — FitTrack' }
 
@@ -19,6 +20,25 @@ export default async function CoachDashboardPage() {
     .single()
 
   const coachId = coachRow?.id
+
+  // Fetch pending requests for this coach
+  const { data: pendingRequests } = coachId
+    ? await supabase
+        .from('coach_change_requests')
+        .select(`
+          id,
+          reason,
+          created_at,
+          clients (
+            id,
+            gender,
+            users ( full_name, email, phone )
+          )
+        `)
+        .eq('requested_coach_id', coachId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+    : { data: [] }
 
   // Fetch active assigned clients
   const { data: assignments } = coachId
@@ -66,7 +86,7 @@ export default async function CoachDashboardPage() {
     <div className="page-body animate-fade-in">
 
       {/* Page Header */}
-      <div style={{ marginBottom: '2.5rem' }}>
+      <div style={{ marginBottom: '2rem' }}>
         <p style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.25rem' }}>
           {today}
         </p>
@@ -74,9 +94,76 @@ export default async function CoachDashboardPage() {
           Welcome back, {session.full_name.split(' ')[0]} 👋
         </h1>
         <p className="text-secondary text-sm">
-          Here&apos;s an overview of your clients and their progress.
+          Here&apos;s an overview of your clients, requests, and monthly assessments.
         </p>
       </div>
+
+      {/* Pending Requests Alert Banner */}
+      {pendingRequests && pendingRequests.length > 0 && (
+        <div
+          className="card animate-scale-in"
+          style={{
+            background: 'linear-gradient(135deg, #FAF4FF 0%, #FFFFFF 100%)',
+            border: '2px solid var(--brand-600)',
+            marginBottom: '2rem',
+            padding: 'var(--space-5)',
+            boxShadow: '0 8px 30px rgba(140,86,212,0.12)',
+          }}
+        >
+          <div className="flex items-center justify-between" style={{ marginBottom: '1rem', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            <div className="flex items-center gap-2">
+              <div
+                className="stat-icon"
+                style={{ width: 36, height: 36, background: 'rgba(140,86,212,0.15)', color: 'var(--brand-700)' }}
+              >
+                <UserCheck size={18} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 800, color: 'var(--brand-900)' }}>
+                  🔔 New Client Requests ({pendingRequests.length} waiting)
+                </h3>
+                <p className="text-secondary text-xs">These clients requested to be trained by you. Please accept or decline.</p>
+              </div>
+            </div>
+            <Link href="/coach/requests" className="btn btn-ghost btn-sm" style={{ color: 'var(--brand-700)', fontWeight: 700 }}>
+              View All Requests <ChevronRight size={14} />
+            </Link>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            {pendingRequests.slice(0, 3).map((req: any) => {
+              const user = req.clients?.users
+              return (
+                <div
+                  key={req.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--space-3) var(--space-4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 'var(--space-3)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>
+                      {user?.full_name ?? 'Client'}
+                    </div>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                      {user?.email} {user?.phone ? `• ${user.phone}` : ''} • Note: {req.reason || 'No note'}
+                    </div>
+                  </div>
+
+                  <CoachRequestActions requestId={req.id} clientName={user?.full_name ?? 'Client'} />
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-3" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
@@ -100,11 +187,11 @@ export default async function CoachDashboardPage() {
         </div>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: 'rgba(245,158,11,0.1)', color: '#b45309' }}>
-            <TrendingUp size={20} />
+            <UserCheck size={20} />
           </div>
           <div>
-            <div className="stat-value">—</div>
-            <div className="stat-label">Avg Progress Rate</div>
+            <div className="stat-value">{pendingRequests?.length ?? 0}</div>
+            <div className="stat-label">Pending Client Requests</div>
           </div>
         </div>
       </div>
@@ -124,7 +211,7 @@ export default async function CoachDashboardPage() {
               <Users size={28} />
             </div>
             <p style={{ fontWeight: 600, color: 'var(--text-primary)' }}>No clients assigned yet</p>
-            <p className="text-secondary text-sm">Your assigned clients will appear here once the admin assigns them to you.</p>
+            <p className="text-secondary text-sm">Your assigned clients will appear here once you accept their requests.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
