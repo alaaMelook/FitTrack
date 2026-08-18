@@ -27,12 +27,8 @@ export default async function AdminMembershipsPage() {
     .from('memberships')
     .select(`
       id,
-      plan_name,
-      price_paid,
-      currency,
       start_date,
       end_date,
-      payment_method,
       created_at,
       clients (
         id,
@@ -52,7 +48,7 @@ export default async function AdminMembershipsPage() {
         <div>
           <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: '0.25rem' }}>Memberships</h1>
           <p className="text-secondary text-sm">
-            {memberships?.length ?? 0} total membership subscriptions
+            {memberships?.length ?? 0} total client subscriptions
           </p>
         </div>
 
@@ -63,7 +59,7 @@ export default async function AdminMembershipsPage() {
         <div className="card empty-state">
           <div className="empty-icon"><CreditCard size={28} /></div>
           <p style={{ fontWeight: 600 }}>No memberships found</p>
-          <p className="text-secondary text-sm">Add a new membership for any client to activate their account.</p>
+          <p className="text-secondary text-sm">Set an expiration date for any client to activate their account.</p>
         </div>
       ) : (
         <div className="table-wrapper">
@@ -71,10 +67,8 @@ export default async function AdminMembershipsPage() {
             <thead>
               <tr>
                 <th>Client</th>
-                <th>Plan Name</th>
-                <th>Price Paid</th>
                 <th>Start Date</th>
-                <th>End Date</th>
+                <th>End Date (تاريخ الانتهاء)</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -93,14 +87,10 @@ export default async function AdminMembershipsPage() {
                         {clientUser?.email}
                       </div>
                     </td>
-                    <td style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{m.plan_name}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>
-                      {m.price_paid} {m.currency}
-                    </td>
                     <td style={{ fontSize: 'var(--text-xs)' }}>
                       {new Date(m.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
-                    <td style={{ fontSize: 'var(--text-xs)' }}>
+                    <td style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--brand-700)' }}>
                       {new Date(m.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td>

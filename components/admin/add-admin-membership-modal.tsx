@@ -71,7 +71,7 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
             className="card animate-scale-in"
             style={{
               width: '100%',
-              maxWidth: 520,
+              maxWidth: 480,
               maxHeight: '90vh',
               overflowY: 'auto',
               background: '#ffffff',
@@ -89,8 +89,8 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
                   <CreditCard size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>Assign Membership</h3>
-                  <p className="text-secondary text-xs">Set subscription plan, price, and exact expiration date.</p>
+                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>Set Client Expiration Date</h3>
+                  <p className="text-secondary text-xs">Activate or extend client subscription period.</p>
                 </div>
               </div>
               <button
@@ -111,7 +111,7 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
 
             {success && (
               <div className="badge badge-success" style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', marginBottom: '1rem' }}>
-                Membership added successfully!
+                Membership active until {endDate}!
               </div>
             )}
 
@@ -129,32 +129,8 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
                 </select>
               </div>
 
-              {/* Plan Name & Price */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
-                <div className="form-group">
-                  <label htmlFor="planName">Plan Name *</label>
-                  <input
-                    id="planName"
-                    name="planName"
-                    type="text"
-                    defaultValue="1 Month Full Access"
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="pricePaid">Price Paid (EGP)</label>
-                  <input
-                    id="pricePaid"
-                    name="pricePaid"
-                    type="number"
-                    defaultValue="600"
-                    min="0"
-                  />
-                </div>
-              </div>
-
               {/* Start & End Dates */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
+              <div className="form-row" style={{ marginBottom: 'var(--space-6)' }}>
                 <div className="form-group">
                   <label htmlFor="startDate" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Calendar size={14} /> Start Date *
@@ -184,17 +160,6 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
                 </div>
               </div>
 
-              {/* Payment Method */}
-              <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
-                <label htmlFor="paymentMethod">Payment Method</label>
-                <select id="paymentMethod" name="paymentMethod" defaultValue="cash">
-                  <option value="cash">Cash (نقدي)</option>
-                  <option value="card">Credit / Debit Card</option>
-                  <option value="vodafone_cash">Vodafone Cash / InstaPay</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                </select>
-              </div>
-
               <div className="flex justify-between items-center" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-4)' }}>
                 <button
                   type="button"
@@ -209,7 +174,7 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
                   className={`btn btn-primary btn-sm ${isPending ? 'btn-loading' : ''}`}
                   disabled={isPending}
                 >
-                  {isPending ? 'Saving...' : 'Save Membership'}
+                  {isPending ? 'Saving...' : 'Save & Activate'}
                 </button>
               </div>
             </form>

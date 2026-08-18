@@ -11,12 +11,8 @@ export async function addAdminMembershipAction(prevState: any, formData: FormDat
 
     const clientId = formData.get('clientId') as string
     const planName = (formData.get('planName') as string)?.trim() || 'Gym Membership'
-    const pricePaid = parseFloat(formData.get('pricePaid') as string) || 0
-    const currency = (formData.get('currency') as string) || 'EGP'
     const startDate = formData.get('startDate') as string
     const endDate = formData.get('endDate') as string
-    const paymentMethod = (formData.get('paymentMethod') as string) || 'cash'
-    const notes = (formData.get('notes') as string) || null
 
     if (!clientId) {
       return { success: false, error: 'Please select a client.' }
@@ -38,12 +34,11 @@ export async function addAdminMembershipAction(prevState: any, formData: FormDat
       gym_id: gymId,
       created_by_user_id: session.id,
       plan_name: planName,
-      price_paid: pricePaid,
-      currency: currency,
+      price_paid: 0,
+      currency: 'EGP',
       start_date: startDate || new Date().toISOString().split('T')[0],
       end_date: endDate,
-      payment_method: paymentMethod,
-      notes: notes,
+      payment_method: 'standard',
     })
 
     if (insertErr) {

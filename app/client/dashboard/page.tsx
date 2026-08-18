@@ -24,7 +24,7 @@ export default async function ClientDashboardPage() {
   const { data: membership } = clientId
     ? await supabase
         .from('memberships')
-        .select('id, start_date, end_date, plan_name')
+        .select('id, start_date, end_date')
         .eq('client_id', clientId)
         .order('end_date', { ascending: false })
         .limit(1)
@@ -94,7 +94,7 @@ export default async function ClientDashboardPage() {
             <CreditCard size={20} />
           </div>
           <div>
-            <div className="stat-label" style={{ marginBottom: '0.5rem' }}>Membership</div>
+            <div className="stat-label" style={{ marginBottom: '0.5rem' }}>Membership Status</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
               {membership ? (
                 <span className={isMembershipActive ? 'badge badge-success' : 'badge badge-error'}>
@@ -103,15 +103,10 @@ export default async function ClientDashboardPage() {
               ) : (
                 <span className="badge badge-neutral">No Membership</span>
               )}
-              {membership?.plan_name && (
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 500 }}>
-                  {membership.plan_name}
-                </span>
-              )}
             </div>
             {membership?.end_date && (
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                Expires {new Date(membership.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                Expires: <strong>{new Date(membership.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
               </div>
             )}
           </div>
@@ -123,90 +118,55 @@ export default async function ClientDashboardPage() {
             <UserCheck size={20} />
           </div>
           <div>
-            <div className="stat-label" style={{ marginBottom: '0.5rem' }}>My Coach</div>
-            {coachName ? (
-              <div style={{ fontWeight: 700, fontSize: 'var(--text-base)' }}>{coachName}</div>
-            ) : (
-              <span className="badge badge-neutral">Not Assigned</span>
-            )}
+            <div className="stat-label" style={{ marginBottom: '0.25rem' }}>My Personal Coach</div>
+            <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)' }}>
+              {coachName ?? 'No coach assigned'}
+            </div>
+            <p className="text-secondary text-xs" style={{ marginTop: '0.25rem' }}>
+              {coachName ? 'Assigned and tracking your progress' : 'Visit Change Coach to select one'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Measurements + Photos */}
-      <div className="grid grid-2" style={{ gap: 'var(--space-6)' }}>
+      {/* Recent Measurements */}
+      <div className="card">
+        <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
+          <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>Recent Progress Logs</h2>
+        </div>
 
-        {/* Recent Measurements */}
-        <div className="card">
-          <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
-            <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Activity size={18} style={{ color: 'var(--brand-600)' }} />
-              Recent Measurements
-            </h2>
-            <AddClientMeasurementModal />
+        {!measurements || measurements.length === 0 ? (
+          <div className="empty-state" style={{ padding: 'var(--space-10) var(--space-8)' }}>
+            <div className="empty-icon"><Activity size={28} /></div>
+            <p style={{ fontWeight: 600 }}>No measurements logged yet</p>
+            <p className="text-secondary text-sm">Click &quot;Log Measurement&quot; to start recording your progress.</p>
           </div>
-
-          {!measurements || measurements.length === 0 ? (
-            <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
-              <div className="empty-icon"><TrendingUp size={24} /></div>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>No measurements recorded yet.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-              {measurements.map((m) => (
-                <div key={m.id} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: 'var(--space-3) var(--space-4)',
-                  background: '#fff',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-lg)',
-                }}>
-                  <div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+        ) : (
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Weight</th>
+                  <th>Body Fat</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {measurements.map((m) => (
+                  <tr key={m.id}>
+                    <td style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>
                       {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                    {m.notes && (
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: 2 }} className="truncate">
-                        {m.notes}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: 'var(--space-3)', textAlign: 'right' }}>
-                    {m.weight_kg != null && (
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{m.weight_kg} kg</div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Weight</div>
-                      </div>
-                    )}
-                    {m.body_fat_pct != null && (
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{m.body_fat_pct}%</div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Body Fat</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Progress Photos placeholder */}
-        <div className="card">
-          <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
-            <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Camera size={18} style={{ color: 'var(--brand-600)' }} />
-              Progress Photos
-            </h2>
+                    </td>
+                    <td>{m.weight_kg ? `${m.weight_kg} kg` : '—'}</td>
+                    <td>{m.body_fat_pct ? `${m.body_fat_pct}%` : '—'}</td>
+                    <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{m.notes ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="empty-state" style={{ padding: 'var(--space-8)' }}>
-            <div className="empty-icon"><Camera size={24} /></div>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>No photos uploaded yet.</p>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Your coach will upload progress photos here.</p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

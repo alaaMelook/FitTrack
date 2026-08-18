@@ -9,29 +9,13 @@ export async function addClientMembershipAction(prevState: any, formData: FormDa
     const session = await requireClient()
     const supabase = await createClient()
 
-    const startDateStr = formData.get('startDate') as string
-    const endDateStr = formData.get('endDate') as string
-    const planName = (formData.get('planName') as string) || 'Gym Access Membership'
-    const pricePaidStr = formData.get('pricePaid') as string
-    const paymentMethod = (formData.get('paymentMethod') as string) || 'Cash at Reception'
-    const notes = (formData.get('notes') as string) || null
+    const planName = (formData.get('planName') as string)?.trim() || 'Gym Membership'
+    const startDate = formData.get('startDate') as string
+    const endDate = formData.get('endDate') as string
 
-    if (!endDateStr) {
-      return { success: false, error: 'Please specify the membership end date (تاريخ انتهاء الاشتراك).' }
+    if (!endDate) {
+      return { success: false, error: 'End Date is required to set membership validity.' }
     }
-
-    const startDate = startDateStr ? new Date(startDateStr) : new Date()
-    const endDate = new Date(endDateStr)
-
-    if (isNaN(endDate.getTime())) {
-      return { success: false, error: 'Invalid end date format.' }
-    }
-
-    if (endDate <= startDate) {
-      return { success: false, error: 'End date must be after the start date (تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء).' }
-    }
-
-    const pricePaid = pricePaidStr ? parseFloat(pricePaidStr) : 1000
 
     // Get client record
     const { data: clientRow } = await supabase
@@ -41,20 +25,21 @@ export async function addClientMembershipAction(prevState: any, formData: FormDa
       .single()
 
     if (!clientRow) {
-      return { success: false, error: 'Client profile not found.' }
+      return { success: false, error: 'Client record not found.' }
     }
 
+    const defaultGymId = clientRow.gym_id || 'a0000000-0000-0000-0000-000000000001'
+
     const { error: insertErr } = await supabase.from('memberships').insert({
-      gym_id: clientRow.gym_id,
       client_id: clientRow.id,
+      gym_id: defaultGymId,
       created_by_user_id: session.id,
       plan_name: planName,
-      price_paid: isNaN(pricePaid) ? 0 : pricePaid,
+      price_paid: 0,
       currency: 'EGP',
-      start_date: startDate.toISOString().split('T')[0],
-      end_date: endDate.toISOString().split('T')[0],
-      payment_method: paymentMethod,
-      notes: notes,
+      start_date: startDate || new Date().toISOString().split('T')[0],
+      end_date: endDate,
+      payment_method: 'standard',
     })
 
     if (insertErr) {
@@ -64,11 +49,9 @@ export async function addClientMembershipAction(prevState: any, formData: FormDa
 
     revalidatePath('/client/my-membership')
     revalidatePath('/client/dashboard')
-    revalidatePath('/admin/memberships')
-    revalidatePath('/admin/dashboard')
     return { success: true, error: null }
   } catch (err: any) {
     console.error('Action error:', err)
-    return { success: false, error: err.message || 'An error occurred while adding the membership.' }
+    return { success: false, error: err.message || 'An error occurred while saving your membership.' }
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
-import { Plus, X, CreditCard, Calendar, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { Plus, X, Calendar, CheckCircle2, AlertCircle } from 'lucide-react'
 import { addClientMembershipAction } from '@/app/client/my-membership/actions'
 
 export function AddMembershipModal() {
@@ -18,16 +18,11 @@ export function AddMembershipModal() {
   defaultEndDate.setMonth(defaultEndDate.getMonth() + 1)
   const [endDate, setEndDate] = useState(defaultEndDate.toISOString().split('T')[0])
 
-  const [planName, setPlanName] = useState('1-Month Membership')
-  const [pricePaid, setPricePaid] = useState('1200')
-
-  const setQuickDuration = (months: number, name: string, price: string) => {
+  const setQuickDuration = (months: number) => {
     const s = new Date(startDate || todayStr)
     const e = new Date(s)
     e.setMonth(e.getMonth() + months)
     setEndDate(e.toISOString().split('T')[0])
-    setPlanName(name)
-    setPricePaid(price)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -83,7 +78,7 @@ export function AddMembershipModal() {
             className="card animate-scale-in"
             style={{
               width: '100%',
-              maxWidth: 540,
+              maxWidth: 500,
               maxHeight: '90vh',
               overflowY: 'auto',
               background: '#ffffff',
@@ -101,8 +96,8 @@ export function AddMembershipModal() {
                   <Calendar size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>Set Membership Validity Period</h3>
-                  <p className="text-secondary text-xs">Specify the exact expiration date for this subscription.</p>
+                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>Set Membership Expiration</h3>
+                  <p className="text-secondary text-xs">Choose how long your subscription should remain active.</p>
                 </div>
               </div>
               <button
@@ -130,40 +125,40 @@ export function AddMembershipModal() {
             {/* Quick preset chips */}
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                Quick Duration Presets:
+                Quick Duration:
               </div>
               <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  onClick={() => setQuickDuration(1, '1-Month Standard Pass', '1200')}
+                  onClick={() => setQuickDuration(1)}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: 'var(--text-xs)', padding: '4px 10px' }}
+                  style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +1 Month
+                  +1 Month (شهر)
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDuration(3, '3-Month Transformation Plan', '3000')}
+                  onClick={() => setQuickDuration(3)}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: 'var(--text-xs)', padding: '4px 10px' }}
+                  style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +3 Months
+                  +3 Months (3 شهور)
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDuration(6, '6-Month VIP Fitness Package', '5500')}
+                  onClick={() => setQuickDuration(6)}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: 'var(--text-xs)', padding: '4px 10px' }}
+                  style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +6 Months
+                  +6 Months (6 شهور)
                 </button>
                 <button
                   type="button"
-                  onClick={() => setQuickDuration(12, '1-Year Elite Membership', '9500')}
+                  onClick={() => setQuickDuration(12)}
                   className="btn btn-secondary btn-sm"
-                  style={{ fontSize: 'var(--text-xs)', padding: '4px 10px' }}
+                  style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +1 Year
+                  +1 Year (سنة)
                 </button>
               </div>
             </div>
@@ -207,7 +202,7 @@ export function AddMembershipModal() {
                   border: `1.5px solid ${daysDiff > 0 ? 'rgba(22,163,74,0.3)' : 'rgba(220,38,38,0.3)'}`,
                   borderRadius: 'var(--radius-md)',
                   padding: 'var(--space-3) var(--space-4)',
-                  marginBottom: 'var(--space-4)',
+                  marginBottom: 'var(--space-6)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -226,44 +221,6 @@ export function AddMembershipModal() {
                 </span>
               </div>
 
-              {/* Plan name & Price */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
-                <div className="form-group">
-                  <label htmlFor="planName">Plan / Membership Name</label>
-                  <input
-                    id="planName"
-                    name="planName"
-                    type="text"
-                    value={planName}
-                    onChange={(e) => setPlanName(e.target.value)}
-                    placeholder="e.g. 3-Month Plan"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="pricePaid">Price Paid (EGP)</label>
-                  <input
-                    id="pricePaid"
-                    name="pricePaid"
-                    type="number"
-                    value={pricePaid}
-                    onChange={(e) => setPricePaid(e.target.value)}
-                    placeholder="e.g. 1500"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-                <label htmlFor="paymentMethod">Payment Method</label>
-                <select id="paymentMethod" name="paymentMethod" defaultValue="Cash at Reception">
-                  <option value="Cash at Reception">Cash at Gym Reception</option>
-                  <option value="Credit / Debit Card">Credit / Debit Card</option>
-                  <option value="InstaPay">InstaPay Transfer</option>
-                  <option value="Vodafone Cash">Vodafone Cash</option>
-                </select>
-              </div>
-
               <div className="flex justify-between items-center" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-4)' }}>
                 <button
                   type="button"
@@ -278,7 +235,7 @@ export function AddMembershipModal() {
                   className={`btn btn-primary btn-sm ${isPending ? 'btn-loading' : ''}`}
                   disabled={isPending}
                 >
-                  {isPending ? 'Saving...' : 'Set Expiration & Activate'}
+                  {isPending ? 'Saving...' : 'Save & Activate'}
                 </button>
               </div>
             </form>
