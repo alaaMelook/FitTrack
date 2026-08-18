@@ -4,6 +4,9 @@ import { requireAdmin } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
 import { Users, UserCheck, CreditCard, RefreshCw, ChevronRight, Activity, Clock } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata: Metadata = { title: 'Admin Dashboard — FitTrack' }
 
 export default async function AdminDashboardPage() {

@@ -5,6 +5,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Users, Plus } from 'lucide-react'
 import { AdminClientActions } from '@/components/admin/admin-client-actions'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata: Metadata = { title: 'Clients Management — FitTrack' }
 
 export default async function AdminClientsPage() {

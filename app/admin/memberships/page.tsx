@@ -4,7 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { CreditCard, Calendar } from 'lucide-react'
 import { AddAdminMembershipModal } from '@/components/admin/add-admin-membership-modal'
 
-export const metadata: Metadata = { title: 'Memberships — FitTrack' }
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+export const metadata: Metadata = { title: 'Memberships Management — FitTrack' }
 
 export default async function AdminMembershipsPage() {
   const session = await requireAdmin()
