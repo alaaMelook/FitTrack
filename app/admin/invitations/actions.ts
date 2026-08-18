@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { requireAdmin } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
 
@@ -10,14 +11,10 @@ export async function createInvitationAction(prevState: any, formData: FormData)
     const supabase = await createClient()
 
     const email = (formData.get('email') as string)?.trim().toLowerCase()
-    const role = (formData.get('role') as string) || 'client'
+    const role = (formData.get('role') as string) || 'coach'
 
     if (!email || !email.includes('@')) {
       return { success: false, error: 'Please provide a valid email address.' }
-    }
-
-    if (role !== 'client' && role !== 'coach') {
-      return { success: false, error: 'Invalid role selected.' }
     }
 
     // Get gym ID
@@ -46,11 +43,19 @@ export async function createInvitationAction(prevState: any, formData: FormData)
       return { success: false, error: insertError.message }
     }
 
+    // Dynamically resolve base URL from the incoming request headers (works on Vercel & localhost automatically)
+    const headerList = await headers()
+    const host = headerList.get('x-forwarded-host') || headerList.get('host') || 'localhost:3000'
+    const proto = headerList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https')
+    const origin = `${proto}://${host}`
+
+    const inviteUrl = `${origin}/register/${invitation.token}`
+
     revalidatePath('/admin/invitations')
     return {
       success: true,
       error: null,
-      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/register/${invitation.token}`,
+      inviteUrl,
     }
   } catch (err: any) {
     console.error('Action error:', err)
