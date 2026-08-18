@@ -15,6 +15,8 @@ import {
   Flame,
   Dumbbell
 } from 'lucide-react'
+import { ClientEditMeasurementActions } from './client-edit-measurement-actions'
+
 
 export type Measurement = {
   id: string
@@ -324,13 +326,14 @@ export function ClientProgressTracker({ measurements }: Props) {
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Weight (kg)</th>
-                  <th>Weight Delta</th>
-                  <th>Body Fat %</th>
-                  <th>Fat Delta</th>
-                  <th>Muscle Mass (kg)</th>
-                  <th>Muscle Delta</th>
+                  <th>Weight</th>
+                  <th>Weight Change (+/-)</th>
+                  <th>Body Fat</th>
+                  <th>Fat Change (+/-)</th>
+                  <th>Muscle Mass</th>
+                  <th>Muscle Change (+/-)</th>
                   <th>Notes</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -387,7 +390,7 @@ export function ClientProgressTracker({ measurements }: Props) {
                         {prev ? (
                           renderDeltaBadge(wDelta, 'kg', true)
                         ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Initial baseline</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
                         )}
                       </td>
 
@@ -397,7 +400,7 @@ export function ClientProgressTracker({ measurements }: Props) {
                         {prev ? (
                           renderDeltaBadge(bfDelta, '%', true)
                         ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Initial baseline</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
                         )}
                       </td>
 
@@ -407,13 +410,18 @@ export function ClientProgressTracker({ measurements }: Props) {
                         {prev ? (
                           renderDeltaBadge(mDelta, 'kg', false)
                         ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Initial baseline</span>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
                         )}
                       </td>
 
                       {/* Notes */}
                       <td style={{ color: 'var(--text-secondary)', maxWidth: 200 }} className="truncate" title={m.notes ?? ''}>
                         {m.notes || '—'}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ textAlign: 'right' }}>
+                        <ClientEditMeasurementActions m={m} />
                       </td>
                     </tr>
                   )
@@ -436,6 +444,7 @@ export function ClientProgressTracker({ measurements }: Props) {
                   <th>Abs (Waist)</th>
                   <th>Leg (Thigh)</th>
                   <th>Notes</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -501,6 +510,11 @@ export function ClientProgressTracker({ measurements }: Props) {
                       {/* Notes */}
                       <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>
                         {m.notes || '—'}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ textAlign: 'right' }}>
+                        <ClientEditMeasurementActions m={m} />
                       </td>
                     </tr>
                   )
