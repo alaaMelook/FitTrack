@@ -1,23 +1,44 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle, Dumbbell } from 'lucide-react'
+import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle, Dumbbell, Loader2 } from 'lucide-react'
 import { registerClientAction } from './actions'
 
 type Coach = {
   id: string
   bio: string | null
-  users: { full_name: string; email: string } | null
+  name: string
+  email: string
 }
 
-export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
+export function ClientRegisterForm() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [selectedCoach, setSelectedCoach] = useState<string>('')
+
+  // Coaches loaded client-side from /api/coaches — always live, never cached
+  const [coaches, setCoaches] = useState<Coach[]>([])
+  const [coachesLoading, setCoachesLoading] = useState(true)
+  const [coachesError, setCoachesError] = useState(false)
+
+  useEffect(() => {
+    setCoachesLoading(true)
+    fetch('/api/coaches')
+      .then((res) => res.json())
+      .then((data) => {
+        setCoaches(data.coaches || [])
+        setCoachesLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to load coaches:', err)
+        setCoachesError(true)
+        setCoachesLoading(false)
+      })
+  }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -133,7 +154,7 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
 
         <div className="form-group">
           <label htmlFor="reg-gender">Gender *</label>
-          <select id="gender" name="gender" required defaultValue="">
+          <select id="reg-gender" name="gender" required defaultValue="">
             <option value="" disabled>Select gender</option>
             <option value="female">Female</option>
             <option value="male">Male</option>
@@ -174,7 +195,23 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
           Choose Your Coach *
         </label>
 
-        {coaches.length === 0 ? (
+        {coachesLoading ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: 'var(--space-4)',
+              background: 'var(--cream-300)',
+              borderRadius: 'var(--radius-lg)',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--text-muted)',
+            }}
+          >
+            <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+            Loading coaches…
+          </div>
+        ) : coachesError || coaches.length === 0 ? (
           <div
             style={{
               padding: 'var(--space-4)',
@@ -188,8 +225,8 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', width: '100%' }}>
-            {coaches.map((coach: any) => {
-              const coachName = coach.name || coach.users?.full_name || 'Coach'
+            {coaches.map((coach) => {
+              const coachName = coach.name || 'Coach'
               const isSelected = selectedCoach === coach.id
               const initials = coachName
                 .split(' ')
@@ -310,7 +347,7 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
       <button
         type="submit"
         className={`btn btn-primary btn-full ${isPending ? 'btn-loading' : ''}`}
-        disabled={isPending || coaches.length === 0}
+        disabled={isPending || coachesLoading || coaches.length === 0}
         style={{ padding: 'var(--space-4)', fontSize: 'var(--text-base)' }}
       >
         {!isPending && <UserPlus size={18} />}

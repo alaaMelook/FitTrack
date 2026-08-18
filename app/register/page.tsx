@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { ClientRegisterForm } from './client-register-form'
 import { Dumbbell } from 'lucide-react'
+import { ClientRegisterForm } from './client-register-form'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -11,46 +10,9 @@ export const metadata: Metadata = {
   description: 'Sign up to FitTrack and start your fitness journey today.',
 }
 
-export default async function RegisterPage() {
-  let coaches: any[] = []
-
-  try {
-    const adminSupabase = createAdminClient()
-    const { data: coachesData } = await adminSupabase
-      .from('coaches')
-      .select('id, user_id, bio, is_active')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-
-    if (coachesData && coachesData.length > 0) {
-      const userIds = coachesData.map((c: any) => c.user_id).filter(Boolean)
-      const { data: usersData } = await adminSupabase
-        .from('users')
-        .select('id, full_name, email')
-        .in('id', userIds)
-
-      const userMap: Record<string, any> = {}
-      if (usersData) {
-        usersData.forEach((u: any) => {
-          userMap[u.id] = u
-        })
-      }
-
-      coaches = coachesData.map((c: any) => {
-        const u = userMap[c.user_id]
-        return {
-          id: c.id,
-          bio: c.bio,
-          name: u?.full_name || 'Coach',
-          email: u?.email || '',
-          users: u || null,
-        }
-      })
-    }
-  } catch (err) {
-    console.error('Error fetching coaches in register page:', err)
-  }
-
+export default function RegisterPage() {
+  // Coaches are fetched client-side in ClientRegisterForm via /api/coaches
+  // This avoids any Vercel static prerendering / server component caching issues
   return (
     <div className="animate-fade-in">
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
@@ -75,7 +37,7 @@ export default async function RegisterPage() {
         </p>
       </div>
 
-      <ClientRegisterForm coaches={coaches} />
+      <ClientRegisterForm />
     </div>
   )
 }
