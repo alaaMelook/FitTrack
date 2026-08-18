@@ -513,21 +513,26 @@ tbody td {
   min-height: 100dvh;
 }
 
-.sidebar {
-  width: var(--sidebar-width);
-  flex-shrink: 0;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-subtle);
-  display: flex;
-  flex-direction: column;
+/* sidebar-wrapper is the outer shell that handles open/closed on mobile */
+.sidebar-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   height: 100dvh;
   z-index: 50;
+  transform: translateX(0);
+}
+
+/* The actual sidebar element (inside sidebar-wrapper) */
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100dvh;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: width var(--transition-base);
   box-shadow: var(--shadow-md);
 }
 
@@ -538,6 +543,11 @@ tbody td {
   display: flex;
   flex-direction: column;
   background: var(--bg-base);
+}
+
+/* Mobile top bar — hidden on desktop */
+.mobile-topbar {
+  display: none;
 }
 
 .page-header {
@@ -728,6 +738,29 @@ tbody td {
 .avatar-xl { width: 80px; height: 80px; font-size: var(--text-2xl); }
 
 /* ─── Dialog / Modal ─────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(26, 16, 37, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.modal-dialog {
+  background: #ffffff;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateZ(0);
+}
+
 dialog {
   background: #ffffff;
   border: 1px solid var(--border-default);
@@ -742,7 +775,6 @@ dialog {
 
 dialog::backdrop {
   background: rgba(26,16,37,0.45);
-  backdrop-filter: blur(6px);
 }
 
 /* ─── Animations ─────────────────────────────────────────────────────────── */
@@ -834,53 +866,83 @@ dialog::backdrop {
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
-    --header-height: 60px;
+    --header-height: 56px;
   }
 
-  /* Sidebar — hidden off-canvas on mobile */
-  .sidebar {
+  /* Sidebar wrapper — hidden off-canvas on mobile */
+  .sidebar-wrapper {
     transform: translateX(-100%);
-    width: 270px !important;
-    box-shadow: var(--shadow-xl);
-    transition: transform 0.3s ease;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
   }
-  .sidebar.open {
+  .sidebar-wrapper.open {
     transform: translateX(0);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Sidebar width on mobile */
+  .sidebar {
+    width: min(280px, 85vw);
+    box-shadow: none;
   }
 
   /* Overlay when sidebar is open */
   .sidebar-overlay {
-    display: block;
     position: fixed;
     inset: 0;
-    background: rgba(26,16,37,0.4);
+    background: rgba(26, 16, 37, 0.45);
     z-index: 45;
-    backdrop-filter: blur(2px);
   }
 
   /* Main content takes full width */
   .main-content {
     margin-left: 0;
+    padding-top: 0;
   }
 
-  /* Header padding shrinks */
-  .page-header {
+  /* Mobile top bar — shown on mobile only */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    height: var(--header-height);
     padding: 0 var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(255, 254, 245, 0.95);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    gap: var(--space-3);
   }
 
-  /* Mobile hamburger button (shown via page-header) */
+  /* Mobile topbar brand */
+  .mobile-topbar::after {
+    content: 'FitTrack';
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  /* Hamburger button */
   .menu-toggle {
     display: flex !important;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: var(--radius-md);
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border-default);
+    color: var(--text-primary);
     cursor: pointer;
     flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .menu-toggle:hover {
+    background: var(--cream-400);
   }
 
   /* Page body padding */
@@ -923,9 +985,10 @@ dialog::backdrop {
   }
 
   /* Modal — full-screen friendly */
-  dialog {
+  dialog, .modal-dialog {
     width: 95vw;
-    padding: var(--space-6);
+    padding: var(--space-5);
+    max-height: 95dvh;
   }
 }
 

@@ -1,17 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
-import { UserCheck, Users, Mail, Phone, Plus, Shield } from 'lucide-react'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { UserCheck, Users, Plus } from 'lucide-react'
+import { CoachVisibilityToggle } from '@/components/admin/coach-visibility-toggle'
+import { AdminCoachActions } from '@/components/admin/admin-coach-actions'
 
 export const metadata: Metadata = { title: 'Coaches Management — FitTrack' }
 
 export default async function AdminCoachesPage() {
-  const session = await requireAdmin()
-  const supabase = await createClient()
+  await requireAdmin()
+  const adminSupabase = createAdminClient()
 
-  // Fetch all coaches with assigned clients count
-  const { data: coaches } = await supabase
+  const { data: coaches } = await adminSupabase
     .from('coaches')
     .select(`
       id,
@@ -19,6 +20,7 @@ export default async function AdminCoachesPage() {
       is_active,
       created_at,
       users (
+        id,
         full_name,
         email,
         phone
@@ -36,7 +38,7 @@ export default async function AdminCoachesPage() {
         <div>
           <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: '0.25rem' }}>Coaches Management</h1>
           <p className="text-secondary text-sm">
-            {coaches?.length ?? 0} coach{(coaches?.length ?? 0) !== 1 ? 'es' : ''} registered
+            {coaches?.length ?? 0} coach{(coaches?.length ?? 0) !== 1 ? 'es' : ''} registered • Toggle visibility to show or hide from public registration.
           </p>
         </div>
         <Link href="/admin/invitations" className="btn btn-primary btn-sm">
@@ -61,7 +63,16 @@ export default async function AdminCoachesPage() {
               : 'CO'
 
             return (
-              <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div
+                key={c.id}
+                className="card"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  opacity: c.is_active ? 1 : 0.6,
+                }}
+              >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: '1.25rem' }}>
                     <div
@@ -75,7 +86,7 @@ export default async function AdminCoachesPage() {
                         {user?.full_name ?? 'Coach'}
                       </div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }} className="truncate">
-                        {user?.email}
+                        {user?.email} {user?.phone ? `• ${user.phone}` : ''}
                       </div>
                     </div>
                   </div>
@@ -85,13 +96,23 @@ export default async function AdminCoachesPage() {
                   </p>
                 </div>
 
-                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--brand-700)' }}>
-                    <Users size={14} /> {activeClientsCount} Active Client{activeClientsCount !== 1 ? 's' : ''}
+                {/* Footer */}
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--brand-700)' }}>
+                      <Users size={14} /> {activeClientsCount} Active Client{activeClientsCount !== 1 ? 's' : ''}
+                    </div>
+                    <CoachVisibilityToggle coachId={c.id} initialIsActive={c.is_active} />
                   </div>
-                  <span className={c.is_active ? 'badge badge-success' : 'badge badge-neutral'}>
-                    {c.is_active ? 'Active' : 'Inactive'}
-                  </span>
+
+                  {user?.id && (
+                    <AdminCoachActions
+                      coachId={c.id}
+                      coachUserId={user.id}
+                      isActive={c.is_active}
+                      coachName={user.full_name ?? 'Coach'}
+                    />
+                  )}
                 </div>
               </div>
             )

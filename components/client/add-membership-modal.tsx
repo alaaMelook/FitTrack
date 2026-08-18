@@ -61,31 +61,8 @@ export function AddMembershipModal() {
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(26,16,37,0.5)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--space-4)',
-          }}
-        >
-          <div
-            className="card animate-scale-in"
-            style={{
-              width: '100%',
-              maxWidth: 500,
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              background: '#ffffff',
-              padding: 'var(--space-6)',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-          >
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: 500 }}>
             {/* Header */}
             <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
               <div className="flex items-center gap-2">
@@ -134,7 +111,7 @@ export function AddMembershipModal() {
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +1 Month (شهر)
+                  +1 Month
                 </button>
                 <button
                   type="button"
@@ -142,7 +119,7 @@ export function AddMembershipModal() {
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +3 Months (3 شهور)
+                  +3 Months
                 </button>
                 <button
                   type="button"
@@ -150,7 +127,7 @@ export function AddMembershipModal() {
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +6 Months (6 شهور)
+                  +6 Months
                 </button>
                 <button
                   type="button"
@@ -158,7 +135,7 @@ export function AddMembershipModal() {
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: 'var(--text-xs)', padding: '4px 12px' }}
                 >
-                  +1 Year (سنة)
+                  +1 Year
                 </button>
               </div>
             </div>
@@ -167,7 +144,7 @@ export function AddMembershipModal() {
               {/* Dates */}
               <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
                 <div className="form-group">
-                  <label htmlFor="startDate">Start Date (تاريخ البدء) *</label>
+                  <label htmlFor="startDate">Start Date *</label>
                   <input
                     id="startDate"
                     name="startDate"
@@ -180,7 +157,7 @@ export function AddMembershipModal() {
 
                 <div className="form-group">
                   <label htmlFor="endDate" style={{ color: 'var(--brand-700)', fontWeight: 700 }}>
-                    End Date (تاريخ الانتهاء) *
+                    End Date *
                   </label>
                   <input
                     id="endDate"

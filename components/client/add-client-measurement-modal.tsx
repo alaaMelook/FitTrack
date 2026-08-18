@@ -41,38 +41,15 @@ export function AddClientMeasurementModal() {
           setSuccess(false)
           setMeasuredAt(todayStr)
         }}
-        className="btn btn-primary btn-sm"
+        className="btn btn-secondary btn-sm"
       >
         <Plus size={16} /> Log Measurement
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(26,16,37,0.5)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--space-4)',
-          }}
-        >
-          <div
-            className="card animate-scale-in"
-            style={{
-              width: '100%',
-              maxWidth: 560,
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              background: '#ffffff',
-              padding: 'var(--space-6)',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-          >
-            {/* Header */}
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: 580 }}>
+            {/* Modal Header */}
             <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
               <div className="flex items-center gap-2">
                 <div
@@ -82,8 +59,8 @@ export function AddClientMeasurementModal() {
                   <Activity size={18} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>Record Your Measurements</h3>
-                  <p className="text-secondary text-xs">All fields are optional — enter whatever measurements you have.</p>
+                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>Log My Measurements</h3>
+                  <p className="text-secondary text-xs">All fields are optional — enter any available assessment data.</p>
                 </div>
               </div>
               <button
@@ -97,13 +74,19 @@ export function AddClientMeasurementModal() {
             </div>
 
             {error && (
-              <div className="badge badge-error" style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', marginBottom: '1rem' }}>
+              <div
+                className="badge badge-error"
+                style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', marginBottom: '1rem' }}
+              >
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="badge badge-success" style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', marginBottom: '1rem' }}>
+              <div
+                className="badge badge-success"
+                style={{ width: '100%', padding: 'var(--space-2) var(--space-3)', marginBottom: '1rem' }}
+              >
                 Measurements recorded successfully!
               </div>
             )}
@@ -111,11 +94,11 @@ export function AddClientMeasurementModal() {
             <form onSubmit={handleSubmit}>
               {/* 1. Date */}
               <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
-                <label htmlFor="measuredAt" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--brand-700)' }}>
-                  <Calendar size={16} /> Measurement Date (تاريخ القياس)
+                <label htmlFor="client-measuredAt" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--brand-700)' }}>
+                  <Calendar size={16} /> Measurement Date
                 </label>
                 <input
-                  id="measuredAt"
+                  id="client-measuredAt"
                   name="measuredAt"
                   type="date"
                   value={measuredAt}
@@ -128,11 +111,11 @@ export function AddClientMeasurementModal() {
               {/* 2. Chest & 3. Arm */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="chestCm">Chest (الصدر - cm)</label>
+                  <label htmlFor="chestCm">Chest (cm)</label>
                   <input id="chestCm" name="chestCm" type="number" step="0.1" placeholder="e.g. 92.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="armCm">Arm (الذراع - cm)</label>
+                  <label htmlFor="armCm">Arm (cm)</label>
                   <input id="armCm" name="armCm" type="number" step="0.1" placeholder="e.g. 30.5" />
                 </div>
               </div>
@@ -140,11 +123,11 @@ export function AddClientMeasurementModal() {
               {/* 4. Glutes & 5. Abs */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="glutesCm">Glutes (الأرداف / المؤخرة - cm)</label>
+                  <label htmlFor="glutesCm">Glutes (cm)</label>
                   <input id="glutesCm" name="glutesCm" type="number" step="0.1" placeholder="e.g. 102.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="absCm">Abs (البطن - cm)</label>
+                  <label htmlFor="absCm">Abs (cm)</label>
                   <input id="absCm" name="absCm" type="number" step="0.1" placeholder="e.g. 76.0" />
                 </div>
               </div>
@@ -152,11 +135,11 @@ export function AddClientMeasurementModal() {
               {/* 6. Leg & 7. Calf */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="legCm">Leg (الأرجل / الفخذ - cm)</label>
+                  <label htmlFor="legCm">Leg (cm)</label>
                   <input id="legCm" name="legCm" type="number" step="0.1" placeholder="e.g. 56.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="calfCm">Calf (السمانة - cm)</label>
+                  <label htmlFor="calfCm">Calf (cm)</label>
                   <input id="calfCm" name="calfCm" type="number" step="0.1" placeholder="e.g. 36.5" />
                 </div>
               </div>
@@ -164,11 +147,11 @@ export function AddClientMeasurementModal() {
               {/* 8. Back & 9. Weight */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="backCm">Back (الظهر - cm)</label>
+                  <label htmlFor="backCm">Back (cm)</label>
                   <input id="backCm" name="backCm" type="number" step="0.1" placeholder="e.g. 105.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="weightKg">Weight (الوزن - kg)</label>
+                  <label htmlFor="weightKg">Weight (kg)</label>
                   <input id="weightKg" name="weightKg" type="number" step="0.1" min="20" max="300" placeholder="e.g. 68.0" />
                 </div>
               </div>
@@ -176,23 +159,23 @@ export function AddClientMeasurementModal() {
               {/* 10. Body Fat & 11. Muscle Mass */}
               <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
                 <div className="form-group">
-                  <label htmlFor="bodyFatPct">Body Fat (نسبة الدهون - %)</label>
+                  <label htmlFor="bodyFatPct">Body Fat (%)</label>
                   <input id="bodyFatPct" name="bodyFatPct" type="number" step="0.1" min="3" max="65" placeholder="e.g. 24.5" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="muscleMassKg">Muscle Mass (الكتلة العضلية - kg)</label>
+                  <label htmlFor="muscleMassKg">Muscle Mass (kg)</label>
                   <input id="muscleMassKg" name="muscleMassKg" type="number" step="0.1" placeholder="e.g. 32.0" />
                 </div>
               </div>
 
               {/* 12. Notes */}
               <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-                <label htmlFor="notes">Notes (ملاحظات)</label>
+                <label htmlFor="notes">Notes</label>
                 <textarea
                   id="notes"
                   name="notes"
                   rows={2}
-                  placeholder="Optional notes or observations..."
+                  placeholder="How do you feel? Any workout notes..."
                 />
               </div>
 

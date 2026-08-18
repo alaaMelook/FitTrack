@@ -1,13 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 // Fetch active coaches for the signup page (public)
 export async function getAvailableCoaches() {
-  const supabase = await createClient()
+  const adminSupabase = createAdminClient()
 
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from('coaches')
     .select(`
       id,

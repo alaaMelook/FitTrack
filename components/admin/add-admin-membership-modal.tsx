@@ -54,31 +54,8 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(26,16,37,0.5)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--space-4)',
-          }}
-        >
-          <div
-            className="card animate-scale-in"
-            style={{
-              width: '100%',
-              maxWidth: 480,
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              background: '#ffffff',
-              padding: 'var(--space-6)',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-          >
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: 480 }}>
             {/* Header */}
             <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
               <div className="flex items-center gap-2">
@@ -146,7 +123,7 @@ export function AddAdminMembershipModal({ clients }: { clients: ClientOption[] }
                 </div>
                 <div className="form-group">
                   <label htmlFor="endDate" style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--brand-700)' }}>
-                    <Calendar size={14} /> End Date (تاريخ الانتهاء) *
+                    <Calendar size={14} /> End Date *
                   </label>
                   <input
                     id="endDate"

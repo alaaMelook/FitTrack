@@ -47,32 +47,8 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
       </button>
 
       {isOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            background: 'rgba(26,16,37,0.5)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--space-4)',
-          }}
-        >
-          <div
-            className="card animate-scale-in"
-            style={{
-              width: '100%',
-              maxWidth: 580,
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              position: 'relative',
-              background: '#ffffff',
-              padding: 'var(--space-6)',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-          >
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: 580 }}>
             {/* Modal Header */}
             <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
               <div className="flex items-center gap-2">
@@ -121,7 +97,7 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
               {/* 1. Date */}
               <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
                 <label htmlFor="measuredAt" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--brand-700)' }}>
-                  <Calendar size={16} /> Assessment Date (تاريخ القياس)
+                  <Calendar size={16} /> Assessment Date
                 </label>
                 <input
                   id="measuredAt"
@@ -137,11 +113,11 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
               {/* 2. Chest & 3. Arm */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="chestCm">Chest (الصدر - cm)</label>
+                  <label htmlFor="chestCm">Chest (cm)</label>
                   <input id="chestCm" name="chestCm" type="number" step="0.1" placeholder="e.g. 92.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="armCm">Arm (الذراع - cm)</label>
+                  <label htmlFor="armCm">Arm (cm)</label>
                   <input id="armCm" name="armCm" type="number" step="0.1" placeholder="e.g. 30.5" />
                 </div>
               </div>
@@ -149,11 +125,11 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
               {/* 4. Glutes & 5. Abs */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="glutesCm">Glutes (الأرداف / المؤخرة - cm)</label>
+                  <label htmlFor="glutesCm">Glutes (cm)</label>
                   <input id="glutesCm" name="glutesCm" type="number" step="0.1" placeholder="e.g. 102.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="absCm">Abs (البطن - cm)</label>
+                  <label htmlFor="absCm">Abs (cm)</label>
                   <input id="absCm" name="absCm" type="number" step="0.1" placeholder="e.g. 76.0" />
                 </div>
               </div>
@@ -161,11 +137,11 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
               {/* 6. Leg & 7. Calf */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="legCm">Leg (الأرجل / الفخذ - cm)</label>
+                  <label htmlFor="legCm">Leg (cm)</label>
                   <input id="legCm" name="legCm" type="number" step="0.1" placeholder="e.g. 56.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="calfCm">Calf (السمانة - cm)</label>
+                  <label htmlFor="calfCm">Calf (cm)</label>
                   <input id="calfCm" name="calfCm" type="number" step="0.1" placeholder="e.g. 36.5" />
                 </div>
               </div>
@@ -173,11 +149,11 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
               {/* 8. Back & 9. Weight */}
               <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
-                  <label htmlFor="backCm">Back (الظهر - cm)</label>
+                  <label htmlFor="backCm">Back (cm)</label>
                   <input id="backCm" name="backCm" type="number" step="0.1" placeholder="e.g. 105.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="weightKg">Weight (الوزن - kg)</label>
+                  <label htmlFor="weightKg">Weight (kg)</label>
                   <input id="weightKg" name="weightKg" type="number" step="0.1" min="20" max="300" placeholder="e.g. 68.0" />
                 </div>
               </div>
@@ -185,11 +161,11 @@ export function AddMeasurementModal({ clientId }: { clientId: string }) {
               {/* 10. Body Fat & 11. Muscle Mass */}
               <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
                 <div className="form-group">
-                  <label htmlFor="bodyFatPct">Body Fat (نسبة الدهون - %)</label>
+                  <label htmlFor="bodyFatPct">Body Fat (%)</label>
                   <input id="bodyFatPct" name="bodyFatPct" type="number" step="0.1" min="3" max="65" placeholder="e.g. 24.5" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="muscleMassKg">Muscle Mass (الكتلة العضلية - kg)</label>
+                  <label htmlFor="muscleMassKg">Muscle Mass (kg)</label>
                   <input id="muscleMassKg" name="muscleMassKg" type="number" step="0.1" placeholder="e.g. 32.0" />
                 </div>
               </div>

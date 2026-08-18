@@ -120,12 +120,13 @@ export function CoachRegisterForm({
 
       {/* Phone */}
       <div className="form-group" style={{ marginBottom: '1rem' }}>
-        <label htmlFor="coach-phone">Phone Number (Optional)</label>
+        <label htmlFor="coach-phone">Phone Number *</label>
         <input
           id="coach-phone"
           name="phone"
           type="tel"
           placeholder="+20 100 000 0000"
+          required
         />
       </div>
 

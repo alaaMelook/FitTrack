@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth/session'
 import { AdminSidebar } from '@/components/layout/admin-sidebar'
+import { MobileShell } from '@/components/layout/mobile-shell'
 
 export default async function AdminLayout({
   children,
@@ -9,11 +10,8 @@ export default async function AdminLayout({
   const session = await requireAdmin()
 
   return (
-    <div className="app-shell">
-      <AdminSidebar user={session} />
-      <main className="main-content">
-        {children}
-      </main>
-    </div>
+    <MobileShell sidebar={<AdminSidebar user={session} />}>
+      {children}
+    </MobileShell>
   )
 }

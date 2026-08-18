@@ -1,5 +1,6 @@
 import { requireClient } from '@/lib/auth/session'
 import { ClientSidebar } from '@/components/layout/client-sidebar'
+import { MobileShell } from '@/components/layout/mobile-shell'
 
 export default async function ClientLayout({
   children,
@@ -9,11 +10,8 @@ export default async function ClientLayout({
   const session = await requireClient()
 
   return (
-    <div className="app-shell">
-      <ClientSidebar user={session} />
-      <main className="main-content">
-        {children}
-      </main>
-    </div>
+    <MobileShell sidebar={<ClientSidebar user={session} />}>
+      {children}
+    </MobileShell>
   )
 }

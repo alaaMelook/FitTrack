@@ -133,10 +133,10 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
 
         <div className="form-group">
           <label htmlFor="reg-gender">Gender *</label>
-          <select id="reg-gender" name="gender" required defaultValue="">
+          <select id="gender" name="gender" required defaultValue="">
             <option value="" disabled>Select gender</option>
-            <option value="female">Female (أنثى)</option>
-            <option value="male">Male (ذكر)</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
           </select>
         </div>
       </div>
@@ -171,7 +171,7 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
       <div className="form-group" style={{ marginBottom: '1.5rem' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.75rem', fontWeight: 700 }}>
           <Dumbbell size={16} style={{ color: 'var(--brand-600)' }} />
-          Choose Your Coach (اختيار الكابتن) *
+          Choose Your Coach *
         </label>
 
         {coaches.length === 0 ? (
@@ -187,7 +187,7 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
             No coaches available right now. Please contact the gym.
           </div>
         ) : (
-          <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', width: '100%' }}>
             {coaches.map((coach) => {
               const user = coach.users as any
               const isSelected = selectedCoach === coach.id
@@ -207,6 +207,8 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
                     border: `2px solid ${isSelected ? 'var(--brand-600)' : 'var(--border-subtle)'}`,
                     background: isSelected ? 'rgba(140,86,212,0.07)' : '#fff',
                     cursor: 'pointer',
+                    width: '100%',
+                    boxSizing: 'border-box',
                     transition: 'all var(--transition-fast)',
                   }}
                 >
@@ -238,7 +240,7 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
                     {initials}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }} className="truncate">
+                    <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }} className="truncate">
                       {user?.full_name ?? 'Coach'}
                     </div>
                     {coach.bio && (

@@ -1,24 +1,22 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
-import { Users, Mail, Phone, Calendar, UserCheck, Plus, Search, Shield } from 'lucide-react'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { Users, Plus } from 'lucide-react'
+import { AdminClientActions } from '@/components/admin/admin-client-actions'
 
 export const metadata: Metadata = { title: 'Clients Management — FitTrack' }
 
 export default async function AdminClientsPage() {
-  const session = await requireAdmin()
-  const supabase = await createClient()
+  await requireAdmin()
+  const adminSupabase = createAdminClient()
 
-  // Fetch all clients with their user details, active coach, and latest membership
-  const { data: clients } = await supabase
+  const { data: clients } = await adminSupabase
     .from('clients')
     .select(`
       id,
       gender,
       height_cm,
-      emergency_contact_name,
-      emergency_contact_phone,
       created_at,
       users (
         id,
@@ -37,7 +35,6 @@ export default async function AdminClientsPage() {
       ),
       memberships (
         id,
-        plan_name,
         start_date,
         end_date
       )
@@ -48,7 +45,6 @@ export default async function AdminClientsPage() {
 
   return (
     <div className="page-body animate-fade-in">
-      {/* Header */}
       <div className="flex items-center justify-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
           <h1 style={{ fontSize: 'var(--text-3xl)', marginBottom: '0.25rem' }}>Clients Management</h1>
@@ -56,17 +52,12 @@ export default async function AdminClientsPage() {
             {clients?.length ?? 0} registered client{(clients?.length ?? 0) !== 1 ? 's' : ''} in Power Gym
           </p>
         </div>
-        <Link href="/admin/invitations" className="btn btn-primary btn-sm">
-          <Plus size={16} /> Invite New Client
-        </Link>
       </div>
 
-      {/* Clients Table */}
       {!clients || clients.length === 0 ? (
         <div className="card empty-state">
           <div className="empty-icon"><Users size={28} /></div>
           <p style={{ fontWeight: 600 }}>No clients found</p>
-          <p className="text-secondary text-sm">Click &quot;Invite New Client&quot; to send an invitation.</p>
         </div>
       ) : (
         <div className="table-wrapper">
@@ -79,6 +70,7 @@ export default async function AdminClientsPage() {
                 <th>Membership</th>
                 <th>Status</th>
                 <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -97,7 +89,7 @@ export default async function AdminClientsPage() {
                   : 'CL'
 
                 return (
-                  <tr key={c.id}>
+                  <tr key={c.id} style={{ opacity: user?.is_active ? 1 : 0.55 }}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                         <div
@@ -122,12 +114,9 @@ export default async function AdminClientsPage() {
                     </td>
                     <td>
                       {latestMembership ? (
-                        <div>
-                          <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600 }}>{latestMembership.plan_name}</div>
-                          <span className={isMemActive ? 'badge badge-success' : 'badge badge-error'} style={{ fontSize: '10px', padding: '1px 6px' }}>
-                            {isMemActive ? 'Active' : 'Expired'}
-                          </span>
-                        </div>
+                        <span className={isMemActive ? 'badge badge-success' : 'badge badge-error'} style={{ fontSize: 10 }}>
+                          {isMemActive ? 'Active' : 'Expired'}
+                        </span>
                       ) : (
                         <span className="badge badge-neutral">None</span>
                       )}
@@ -139,6 +128,16 @@ export default async function AdminClientsPage() {
                     </td>
                     <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
                       {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td>
+                      {user?.id && (
+                        <AdminClientActions
+                          clientId={c.id}
+                          clientUserId={user.id}
+                          isActive={user.is_active ?? true}
+                          clientName={user.full_name ?? 'Client'}
+                        />
+                      )}
                     </td>
                   </tr>
                 )

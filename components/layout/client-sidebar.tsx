@@ -17,7 +17,7 @@ import type { SessionUser } from '@/lib/auth/session'
 
 const navItems = [
   { href: '/client/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/client/my-progress', label: 'My Progress & Photos', icon: TrendingUp },
+  { href: '/client/my-progress', label: 'My Progress', icon: TrendingUp },
   { href: '/client/my-membership', label: 'Membership', icon: CreditCard },
   { href: '/client/my-coach', label: 'My Coach', icon: UserCheck },
   { href: '/client/change-coach', label: 'Change Coach', icon: RefreshCw },

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ClientRegisterForm } from './client-register-form'
 import { Dumbbell } from 'lucide-react'
 
@@ -9,9 +9,10 @@ export const metadata: Metadata = {
 }
 
 export default async function RegisterPage() {
-  const supabase = await createClient()
+  const adminSupabase = createAdminClient()
 
-  const { data: coaches } = await supabase
+  // Fetch only active/visible coaches with full user names (using admin client to bypass RLS for public registration)
+  const { data: coaches } = await adminSupabase
     .from('coaches')
     .select(`
       id,
