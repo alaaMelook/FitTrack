@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ClientRegisterForm } from './client-register-form'
 import { Dumbbell } from 'lucide-react'
@@ -16,47 +15,40 @@ export default async function RegisterPage() {
   let coaches: any[] = []
 
   try {
-    // 1. Try with admin client
     const adminSupabase = createAdminClient()
-    const { data: adminData } = await adminSupabase
+    const { data: coachesData } = await adminSupabase
       .from('coaches')
-      .select(`
-        id,
-        bio,
-        is_active,
-        users ( full_name, email )
-      `)
+      .select('id, user_id, bio, is_active')
       .eq('is_active', true)
       .order('created_at', { ascending: true })
 
-    if (adminData && adminData.length > 0) {
-      coaches = adminData
+    if (coachesData && coachesData.length > 0) {
+      const userIds = coachesData.map((c: any) => c.user_id).filter(Boolean)
+      const { data: usersData } = await adminSupabase
+        .from('users')
+        .select('id, full_name, email')
+        .in('id', userIds)
+
+      const userMap: Record<string, any> = {}
+      if (usersData) {
+        usersData.forEach((u: any) => {
+          userMap[u.id] = u
+        })
+      }
+
+      coaches = coachesData.map((c: any) => {
+        const u = userMap[c.user_id]
+        return {
+          id: c.id,
+          bio: c.bio,
+          name: u?.full_name || 'Coach',
+          email: u?.email || '',
+          users: u || null,
+        }
+      })
     }
   } catch (err) {
-    console.error('Error fetching coaches with admin client:', err)
-  }
-
-  // 2. Fallback to server client if still empty
-  if (coaches.length === 0) {
-    try {
-      const supabase = await createClient()
-      const { data: serverData } = await supabase
-        .from('coaches')
-        .select(`
-          id,
-          bio,
-          is_active,
-          users ( full_name, email )
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: true })
-
-      if (serverData && serverData.length > 0) {
-        coaches = serverData
-      }
-    } catch (e) {
-      console.error('Fallback error:', e)
-    }
+    console.error('Error fetching coaches in register page:', err)
   }
 
   return (

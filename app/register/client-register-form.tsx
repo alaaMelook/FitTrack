@@ -188,12 +188,15 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', width: '100%' }}>
-            {coaches.map((coach) => {
-              const user = coach.users as any
+            {coaches.map((coach: any) => {
+              const coachName = coach.name || coach.users?.full_name || 'Coach'
               const isSelected = selectedCoach === coach.id
-              const initials = user?.full_name
-                ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-                : 'CO'
+              const initials = coachName
+                .split(' ')
+                .map((n: string) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2)
               return (
                 <label
                   key={coach.id}
@@ -241,7 +244,7 @@ export function ClientRegisterForm({ coaches }: { coaches: Coach[] }) {
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }} className="truncate">
-                      {user?.full_name ?? 'Coach'}
+                      {coachName}
                     </div>
                     {coach.bio && (
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }} className="truncate">
