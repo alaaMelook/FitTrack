@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { ClientRegisterForm } from './client-register-form'
 import { Dumbbell } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: 'Join FitTrack — Create Your Account',
@@ -9,18 +13,43 @@ export const metadata: Metadata = {
 }
 
 export default async function RegisterPage() {
-  const adminSupabase = createAdminClient()
+  let coaches: any[] = []
 
-  // Fetch only active/visible coaches with full user names (using admin client to bypass RLS for public registration)
-  const { data: coaches } = await adminSupabase
-    .from('coaches')
-    .select(`
-      id,
-      bio,
-      users ( full_name, email )
-    `)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true })
+  try {
+    const adminSupabase = createAdminClient()
+    const { data, error } = await adminSupabase
+      .from('coaches')
+      .select(`
+        id,
+        bio,
+        is_active,
+        users ( full_name, email )
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+
+    if (!error && data) {
+      coaches = data
+    }
+  } catch (err) {
+    console.error('Error fetching coaches with admin client:', err)
+    // Fallback to server anon client
+    try {
+      const supabase = await createClient()
+      const { data } = await supabase
+        .from('coaches')
+        .select(`
+          id,
+          bio,
+          is_active,
+          users ( full_name, email )
+        `)
+        .eq('is_active', true)
+      if (data) coaches = data
+    } catch (e) {
+      console.error('Fallback error:', e)
+    }
+  }
 
   return (
     <div className="animate-fade-in">
@@ -46,7 +75,7 @@ export default async function RegisterPage() {
         </p>
       </div>
 
-      <ClientRegisterForm coaches={coaches ?? []} />
+      <ClientRegisterForm coaches={coaches} />
     </div>
   )
 }
