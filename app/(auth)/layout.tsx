@@ -35,12 +35,12 @@ export default function AuthLayout({
             <span className={styles.logoText}>FitTrack</span>
           </div>
 
-          <div className={styles.taglineSection} style={{ marginTop: '2.5rem', marginBottom: '2rem' }}>
-            <h1 className={styles.tagline} style={{ fontSize: '2.5rem', lineHeight: 1.2, fontWeight: 800 }}>
+          <div className={styles.taglineSection} style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+            <h1 className={styles.tagline} style={{ fontSize: '2.5rem', lineHeight: 1.2, fontWeight: 800, color: 'var(--text-primary)' }}>
               Your Journey <br />
               Starts Here.
             </h1>
-            <p className={styles.taglineSubtext} style={{ fontSize: '1.05rem', lineHeight: 1.7, marginTop: '1rem', color: 'rgba(255,255,255,0.8)' }}>
+            <p className={styles.taglineSubtext} style={{ fontSize: '1.05rem', lineHeight: 1.7, marginTop: '1rem', color: 'var(--text-secondary)' }}>
               Transform your body, stay disciplined, and become the strongest version of yourself.
             </p>
           </div>
@@ -49,16 +49,16 @@ export default function AuthLayout({
             style={{
               padding: '1.25rem 1.5rem',
               borderRadius: 'var(--radius-xl)',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(8px)',
-              maxWidth: 380,
+              background: '#ffffff',
+              border: '1.5px solid var(--border-default)',
+              boxShadow: 'var(--shadow-sm)',
+              maxWidth: 400,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--brand-300)', fontWeight: 700, fontSize: '0.9rem', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--brand-700)', fontWeight: 700, fontSize: '0.9rem', marginBottom: 6 }}>
               <Sparkles size={16} /> Power Gym Community
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, margin: 0 }}>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, fontStyle: 'italic' }}>
               &quot;Consistency is the bridge between goals and accomplishment.&quot;
             </p>
           </div>
