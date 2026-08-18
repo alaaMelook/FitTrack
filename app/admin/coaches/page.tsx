@@ -6,6 +6,9 @@ import { UserCheck, Users, Plus } from 'lucide-react'
 import { CoachVisibilityToggle } from '@/components/admin/coach-visibility-toggle'
 import { AdminCoachActions } from '@/components/admin/admin-coach-actions'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata: Metadata = { title: 'Coaches Management — FitTrack' }
 
 export default async function AdminCoachesPage() {
