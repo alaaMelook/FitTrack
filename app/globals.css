@@ -38,25 +38,25 @@
   --bg-overlay:  rgba(140, 86, 212, 0.05);
   --bg-hover:    rgba(140, 86, 212, 0.06);
 
-  /* Borders */
-  --border-subtle:  rgba(140, 86, 212, 0.09);
-  --border-default: rgba(140, 86, 212, 0.16);
-  --border-strong:  rgba(140, 86, 212, 0.28);
-  --border-brand:   rgba(140, 86, 212, 0.55);
+  /* Borders — crisp & defined */
+  --border-subtle:  rgba(140, 86, 212, 0.16);
+  --border-default: rgba(140, 86, 212, 0.28);
+  --border-strong:  rgba(140, 86, 212, 0.45);
+  --border-brand:   rgba(140, 86, 212, 0.65);
 
-  /* Text — dark on light */
-  --text-primary:   #1a1025;   /* Near-black, purple-tinted */
-  --text-secondary: #4a3f5c;   /* Dark purple-grey */
-  --text-muted:     #7c6e8f;   /* Mid purple-grey */
-  --text-disabled:  #b8afc8;
-  --text-brand:     #8c56d4;   /* Purple accent text */
-  --text-accent:    #7a5800;   /* Dark amber for gold bg */
-  --text-pink:      #a020a0;   /* Deep magenta on pink */
+  /* Text — deep contrast dark on light */
+  --text-primary:   #12091f;   /* Sharp near-black */
+  --text-secondary: #382c4d;   /* Rich purple-slate */
+  --text-muted:     #5e5074;   /* Crisp mid purple-slate */
+  --text-disabled:  #a69bb8;
+  --text-brand:     #7c3ec9;   /* High-contrast purple CTA */
+  --text-accent:    #6b4900;   /* Deep amber */
+  --text-pink:      #911891;   /* Deep magenta */
 
   /* Status — adjusted for light background */
-  --status-success-bg:    rgba(22, 163, 74, 0.1);
+  --status-success-bg:    rgba(22, 163, 74, 0.12);
   --status-success-text:  #15803d;
-  --status-success-border: rgba(22, 163, 74, 0.25);
+  --status-success-border: rgba(22, 163, 74, 0.32);
 
   --status-warning-bg:    rgba(217, 119, 6, 0.1);
   --status-warning-text:  #b45309;
@@ -857,7 +857,21 @@ dialog::backdrop {
   border: 0;
 }
 
-/* ─── Responsive ─────────────────────────────────────────────────────────── */
+/* ─── Responsive & Mobile Enhancements ───────────────────────────── */
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.table-scroll-hint {
+  display: none;
+}
+
+.mobile-bottom-nav {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
@@ -866,10 +880,20 @@ dialog::backdrop {
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
-    --header-height: 56px;
+    --header-height: 58px;
   }
 
-  /* Sidebar wrapper — hidden off-canvas on mobile */
+  /* Prevent iOS zoom & ensure easy touch interaction */
+  input, textarea, select {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  .btn {
+    min-height: 42px;
+  }
+
+  /* Sidebar wrapper — off-canvas on mobile */
   .sidebar-wrapper {
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -877,52 +901,46 @@ dialog::backdrop {
   }
   .sidebar-wrapper.open {
     transform: translateX(0);
-    box-shadow: var(--shadow-xl);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
   }
 
-  /* Sidebar width on mobile */
+  /* Sidebar drawer width */
   .sidebar {
-    width: min(280px, 85vw);
+    width: min(300px, 86vw);
     box-shadow: none;
+    background: #ffffff;
   }
 
   /* Overlay when sidebar is open */
   .sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(26, 16, 37, 0.45);
+    background: rgba(18, 9, 31, 0.55);
+    backdrop-filter: blur(4px);
     z-index: 45;
   }
 
-  /* Main content takes full width */
+  /* Main content layout */
   .main-content {
     margin-left: 0;
     padding-top: 0;
+    padding-bottom: 78px; /* space for mobile bottom nav */
   }
 
-  /* Mobile top bar — shown on mobile only */
+  /* Mobile top bar */
   .mobile-topbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     height: var(--header-height);
     padding: 0 var(--space-4);
-    border-bottom: 1px solid var(--border-subtle);
-    background: rgba(255, 254, 245, 0.95);
-    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-default);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
     z-index: 40;
-    gap: var(--space-3);
-  }
-
-  /* Mobile topbar brand */
-  .mobile-topbar::after {
-    content: 'FitTrack';
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: var(--text-lg);
-    color: var(--text-primary);
-    flex: 1;
+    box-shadow: 0 1px 4px rgba(140, 86, 212, 0.07);
   }
 
   /* Hamburger button */
@@ -930,34 +948,86 @@ dialog::backdrop {
     display: flex !important;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: var(--radius-md);
-    background: var(--bg-elevated);
+    background: var(--bg-surface);
     border: 1.5px solid var(--border-default);
     color: var(--text-primary);
     cursor: pointer;
     flex-shrink: 0;
-    transition: background 0.15s;
+    transition: background 0.15s, border-color 0.15s;
   }
 
-  .menu-toggle:hover {
+  .menu-toggle:active {
     background: var(--cream-400);
+    border-color: var(--brand-600);
+  }
+
+  /* Mobile Bottom Navigation Bar */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-default);
+    z-index: 44;
+    padding: 0 var(--space-2);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    align-items: center;
+    justify-content: space-around;
+    box-shadow: 0 -4px 20px rgba(140, 86, 212, 0.1);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 6px 4px;
+    border-radius: var(--radius-md);
+    transition: color 0.15s, transform 0.15s;
+    flex: 1;
+    max-width: 75px;
+    text-align: center;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--brand-700);
+    font-weight: 700;
+  }
+
+  .mobile-nav-item.active svg {
+    color: var(--brand-600);
   }
 
   /* Page body padding */
   .page-body {
-    padding: var(--space-4);
+    padding: var(--space-4) var(--space-3);
   }
 
-  /* Grids collapse to 1 column */
+  /* Grids collapse gracefully */
   .grid-2, .grid-3, .grid-4 {
     grid-template-columns: 1fr;
   }
 
-  /* Form rows collapse */
+  /* Form rows collapse except 2col rows */
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .form-row-2col {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
   }
 
   /* Tables — horizontal scroll */
@@ -965,19 +1035,46 @@ dialog::backdrop {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: var(--radius-xl);
-    border: 1px solid var(--border-subtle);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .table-scroll-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-brand);
+    background: rgba(140, 86, 212, 0.08);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-2);
+    width: fit-content;
   }
 
   table {
-    min-width: 560px;
+    min-width: 580px;
   }
 
-  /* Stat cards — compact on mobile */
+  thead th {
+    padding: var(--space-3) var(--space-4);
+    font-size: 11px;
+  }
+
+  tbody td {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-xs);
+  }
+
+  /* Stat cards on mobile */
   .stat-card {
     padding: var(--space-4);
     flex-direction: row;
     align-items: center;
     gap: var(--space-3);
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-card);
   }
 
   .stat-value {
@@ -987,8 +1084,9 @@ dialog::backdrop {
   /* Modal — full-screen friendly */
   dialog, .modal-dialog {
     width: 95vw;
-    padding: var(--space-5);
-    max-height: 95dvh;
+    padding: var(--space-4);
+    max-height: 90dvh;
+    border-radius: var(--radius-xl);
   }
 }
 
@@ -997,14 +1095,14 @@ dialog::backdrop {
   h2 { font-size: var(--text-xl); }
 
   .page-body {
-    padding: var(--space-3);
+    padding: var(--space-3) var(--space-2);
   }
 
   .card {
     padding: var(--space-4);
+    border-radius: var(--radius-lg);
   }
 
-  /* Buttons full-width on tiny screens when stacked */
   .btn-full-mobile {
     width: 100%;
   }

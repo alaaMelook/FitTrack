@@ -46,7 +46,6 @@ export function LoginForm() {
           autoComplete="email"
           autoFocus
           placeholder="you@example.com"
-          defaultValue="alaamelook89@gmail.com"
           className={state?.fieldErrors?.email ? 'input-error' : ''}
           required
         />
@@ -68,7 +67,6 @@ export function LoginForm() {
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••"
-            defaultValue="Admin@123456"
             className={state?.fieldErrors?.password ? 'input-error' : ''}
             style={{ paddingRight: '2.75rem' }}
             required

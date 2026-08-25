@@ -109,7 +109,7 @@ export function AddClientMeasurementModal() {
               </div>
 
               {/* 2. Chest & 3. Arm */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
                   <label htmlFor="chestCm">Chest (cm)</label>
                   <input id="chestCm" name="chestCm" type="number" step="0.1" placeholder="e.g. 92.0" />
@@ -121,7 +121,7 @@ export function AddClientMeasurementModal() {
               </div>
 
               {/* 4. Glutes & 5. Abs */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
                   <label htmlFor="glutesCm">Glutes (cm)</label>
                   <input id="glutesCm" name="glutesCm" type="number" step="0.1" placeholder="e.g. 102.0" />
@@ -133,7 +133,7 @@ export function AddClientMeasurementModal() {
               </div>
 
               {/* 6. Leg & 7. Calf */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
                   <label htmlFor="legCm">Leg (cm)</label>
                   <input id="legCm" name="legCm" type="number" step="0.1" placeholder="e.g. 56.0" />
@@ -145,7 +145,7 @@ export function AddClientMeasurementModal() {
               </div>
 
               {/* 8. Back & 9. Weight */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-3)' }}>
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
                   <label htmlFor="backCm">Back (cm)</label>
                   <input id="backCm" name="backCm" type="number" step="0.1" placeholder="e.g. 105.0" />
@@ -157,7 +157,7 @@ export function AddClientMeasurementModal() {
               </div>
 
               {/* 10. Body Fat & 11. Muscle Mass */}
-              <div className="form-row" style={{ marginBottom: 'var(--space-4)' }}>
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-4)' }}>
                 <div className="form-group">
                   <label htmlFor="bodyFatPct">Body Fat (%)</label>
                   <input id="bodyFatPct" name="bodyFatPct" type="number" step="0.1" min="3" max="65" placeholder="e.g. 24.5" />

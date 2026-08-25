@@ -46,6 +46,7 @@ export default function AuthLayout({
           </div>
 
           <div
+            className={styles.quoteCard}
             style={{
               padding: '1.25rem 1.5rem',
               borderRadius: 'var(--radius-xl)',

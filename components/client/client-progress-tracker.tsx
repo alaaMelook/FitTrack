@@ -271,18 +271,30 @@ export function ClientProgressTracker({ measurements }: Props) {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: 6, background: 'var(--cream-300)', padding: 4, borderRadius: 'var(--radius-md)' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              background: 'var(--cream-300)',
+              padding: 4,
+              borderRadius: 'var(--radius-md)',
+              overflowX: 'auto',
+              maxWidth: '100%',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
             <button
               type="button"
               onClick={() => setActiveTab('evolution')}
               className="btn btn-ghost btn-sm"
               style={{
                 fontSize: 'var(--text-xs)',
-                padding: '5px 12px',
+                padding: '6px 12px',
                 background: activeTab === 'evolution' ? '#fff' : 'transparent',
                 boxShadow: activeTab === 'evolution' ? 'var(--shadow-sm)' : 'none',
                 fontWeight: activeTab === 'evolution' ? 700 : 500,
                 color: activeTab === 'evolution' ? 'var(--brand-700)' : 'var(--text-secondary)',
+                whiteSpace: 'nowrap',
               }}
             >
               <Calendar size={13} /> Step-by-Step Delta
@@ -294,11 +306,12 @@ export function ClientProgressTracker({ measurements }: Props) {
               className="btn btn-ghost btn-sm"
               style={{
                 fontSize: 'var(--text-xs)',
-                padding: '5px 12px',
+                padding: '6px 12px',
                 background: activeTab === 'body-parts' ? '#fff' : 'transparent',
                 boxShadow: activeTab === 'body-parts' ? 'var(--shadow-sm)' : 'none',
                 fontWeight: activeTab === 'body-parts' ? 700 : 500,
                 color: activeTab === 'body-parts' ? 'var(--brand-700)' : 'var(--text-secondary)',
+                whiteSpace: 'nowrap',
               }}
             >
               <Layers size={13} /> Body Circumferences
@@ -310,11 +323,12 @@ export function ClientProgressTracker({ measurements }: Props) {
               className="btn btn-ghost btn-sm"
               style={{
                 fontSize: 'var(--text-xs)',
-                padding: '5px 12px',
+                padding: '6px 12px',
                 background: activeTab === 'comparison' ? '#fff' : 'transparent',
                 boxShadow: activeTab === 'comparison' ? 'var(--shadow-sm)' : 'none',
                 fontWeight: activeTab === 'comparison' ? 700 : 500,
                 color: activeTab === 'comparison' ? 'var(--brand-700)' : 'var(--text-secondary)',
+                whiteSpace: 'nowrap',
               }}
             >
               <Award size={13} /> Starting vs Current
