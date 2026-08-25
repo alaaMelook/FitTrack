@@ -164,7 +164,7 @@ export default async function CoachClientDetailPage({
       </div>
 
       {/* Stat Cards Row */}
-      <div className="grid grid-4" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
+      <div className="stat-grid-4" style={{ marginBottom: '1.75rem' }}>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: 'rgba(140,86,212,0.1)', color: 'var(--brand-600)' }}>
             <Activity size={20} />
@@ -212,7 +212,7 @@ export default async function CoachClientDetailPage({
 
       {/* Measurement History with Edit & Delete Actions */}
       <div className="card" style={{ marginBottom: '2rem' }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Activity size={20} style={{ color: 'var(--brand-600)' }} />
@@ -230,47 +230,94 @@ export default async function CoachClientDetailPage({
             <p className="text-secondary text-sm">Click &quot;Log Measurement&quot; above to log the first assessment.</p>
           </div>
         ) : (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Chest</th>
-                  <th>Arm</th>
-                  <th>Glutes</th>
-                  <th>Abs</th>
-                  <th>Leg</th>
-                  <th>Weight</th>
-                  <th>Body Fat</th>
-                  <th>Muscle Mass</th>
-                  <th>Notes</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {measurements.map((m) => (
-                  <tr key={m.id}>
-                    <td style={{ fontWeight: 600 }}>
-                      {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td>{m.chest_cm != null ? `${m.chest_cm} cm` : '—'}</td>
-                    <td>{m.arm_cm != null ? `${m.arm_cm} cm` : '—'}</td>
-                    <td>{m.hips_cm != null ? `${m.hips_cm} cm` : '—'}</td>
-                    <td>{m.waist_cm != null ? `${m.waist_cm} cm` : '—'}</td>
-                    <td>{m.thigh_cm != null ? `${m.thigh_cm} cm` : '—'}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>{m.weight_kg != null ? `${m.weight_kg} kg` : '—'}</td>
-                    <td>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
-                    <td>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
-                    <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>
-                      {m.notes ?? '—'}
-                    </td>
-                    <td>
-                      <EditMeasurementActions m={m} clientId={clientId} />
-                    </td>
+          <div>
+            {/* Desktop Table View */}
+            <div className="desktop-table-view table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Chest</th>
+                    <th>Arm</th>
+                    <th>Glutes</th>
+                    <th>Abs</th>
+                    <th>Leg</th>
+                    <th>Weight</th>
+                    <th>Body Fat</th>
+                    <th>Muscle Mass</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {measurements.map((m) => (
+                    <tr key={m.id}>
+                      <td style={{ fontWeight: 600 }}>
+                        {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td>{m.chest_cm != null ? `${m.chest_cm} cm` : '—'}</td>
+                      <td>{m.arm_cm != null ? `${m.arm_cm} cm` : '—'}</td>
+                      <td>{m.hips_cm != null ? `${m.hips_cm} cm` : '—'}</td>
+                      <td>{m.waist_cm != null ? `${m.waist_cm} cm` : '—'}</td>
+                      <td>{m.thigh_cm != null ? `${m.thigh_cm} cm` : '—'}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>{m.weight_kg != null ? `${m.weight_kg} kg` : '—'}</td>
+                      <td>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
+                      <td>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
+                      <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>
+                        {m.notes ?? '—'}
+                      </td>
+                      <td>
+                        <EditMeasurementActions m={m} clientId={clientId} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="mobile-card-view">
+              {measurements.map((m) => (
+                <div key={m.id} className="mobile-data-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13px' }}>
+                      {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    <EditMeasurementActions m={m} clientId={clientId} />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, background: 'var(--cream-300)', padding: '8px 10px', borderRadius: 'var(--radius-md)', fontSize: '12px' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '10px', display: 'block' }}>WEIGHT</span>
+                      <strong style={{ color: 'var(--brand-700)' }}>{m.weight_kg != null ? `${m.weight_kg} kg` : '—'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '10px', display: 'block' }}>BODY FAT</span>
+                      <strong>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '10px', display: 'block' }}>MUSCLE</span>
+                      <strong>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    <div>Chest: <strong>{m.chest_cm ? `${m.chest_cm}cm` : '—'}</strong></div>
+                    <div>Arm: <strong>{m.arm_cm ? `${m.arm_cm}cm` : '—'}</strong></div>
+                    <div>Abs: <strong>{m.waist_cm ? `${m.waist_cm}cm` : '—'}</strong></div>
+                    <div>Glutes: <strong>{m.hips_cm ? `${m.hips_cm}cm` : '—'}</strong></div>
+                    <div>Leg: <strong>{m.thigh_cm ? `${m.thigh_cm}cm` : '—'}</strong></div>
+                    <div>Calf: <strong>{m.calf_cm ? `${m.calf_cm}cm` : '—'}</strong></div>
+                  </div>
+
+                  {m.notes && (
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', borderTop: '1px solid var(--border-subtle)', paddingTop: 4 }}>
+                      Notes: {m.notes}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

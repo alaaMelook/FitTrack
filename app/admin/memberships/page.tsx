@@ -65,47 +65,87 @@ export default async function AdminMembershipsPage() {
           <p className="text-secondary text-sm">Set an expiration date for any client to activate their account.</p>
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Start Date</th>
-                <th>End Date (تاريخ الانتهاء)</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {memberships.map((m: any) => {
-                const clientUser = m.clients?.users
-                const isActive = m.end_date >= today
+        <div>
+          {/* Desktop Table View */}
+          <div className="desktop-table-view table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Start Date</th>
+                  <th>End Date (تاريخ الانتهاء)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {memberships.map((m: any) => {
+                  const clientUser = m.clients?.users
+                  const isActive = m.end_date >= today
 
-                return (
-                  <tr key={m.id}>
-                    <td>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>
+                  return (
+                    <tr key={m.id}>
+                      <td>
+                        <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>
+                          {clientUser?.full_name ?? 'Client'}
+                        </div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                          {clientUser?.email}
+                        </div>
+                      </td>
+                      <td style={{ fontSize: 'var(--text-xs)' }}>
+                        {new Date(m.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--brand-700)' }}>
+                        {new Date(m.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td>
+                        <span className={isActive ? 'badge badge-success' : 'badge badge-error'}>
+                          {isActive ? 'Active' : 'Expired'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="mobile-card-view">
+            {memberships.map((m: any) => {
+              const clientUser = m.clients?.users
+              const isActive = m.end_date >= today
+
+              return (
+                <div key={m.id} className="mobile-data-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '14px' }}>
                         {clientUser?.full_name ?? 'Client'}
                       </div>
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                         {clientUser?.email}
                       </div>
-                    </td>
-                    <td style={{ fontSize: 'var(--text-xs)' }}>
-                      {new Date(m.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--brand-700)' }}>
-                      {new Date(m.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td>
-                      <span className={isActive ? 'badge badge-success' : 'badge badge-error'}>
-                        {isActive ? 'Active' : 'Expired'}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </div>
+                    <span className={isActive ? 'badge badge-success' : 'badge badge-error'} style={{ fontSize: '10px' }}>
+                      {isActive ? 'Active' : 'Expired'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: 'var(--cream-300)', padding: '6px 10px', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>Start: </span>
+                      <span>{new Date(m.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>End: </span>
+                      <strong style={{ color: 'var(--brand-700)' }}>{new Date(m.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

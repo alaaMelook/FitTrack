@@ -148,7 +148,7 @@ export function ClientProgressTracker({ measurements }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
       {/* ─── 1. OVERALL TRANSFORMATION SUMMARY CARDS ─────────────────────── */}
-      <div className="grid grid-3" style={{ gap: 'var(--space-4)' }}>
+      <div className="stat-grid-3" style={{ marginBottom: 'var(--space-2)' }}>
         {/* Weight Evolution */}
         <div
           className="stat-card"
@@ -338,226 +338,366 @@ export function ClientProgressTracker({ measurements }: Props) {
 
         {/* TAB 1: STEP-BY-STEP EVOLUTION WITH DELTAS */}
         {activeTab === 'evolution' && (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Weight</th>
-                  <th>Weight Change (+/-)</th>
-                  <th>Body Fat</th>
-                  <th>Fat Change (+/-)</th>
-                  <th>Muscle Mass</th>
-                  <th>Muscle Change (+/-)</th>
-                  <th>Notes</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedLatest.map((m, idx) => {
-                  // The next item in sortedLatest is the chronologically previous assessment
-                  const prev = sortedLatest[idx + 1]
+          <div>
+            {/* Desktop Table View */}
+            <div className="desktop-table-view table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Weight</th>
+                    <th>Weight Change (+/-)</th>
+                    <th>Body Fat</th>
+                    <th>Fat Change (+/-)</th>
+                    <th>Muscle Mass</th>
+                    <th>Muscle Change (+/-)</th>
+                    <th>Notes</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedLatest.map((m, idx) => {
+                    const prev = sortedLatest[idx + 1]
+                    const wDelta =
+                      m.weight_kg != null && prev?.weight_kg != null ? m.weight_kg - prev.weight_kg : null
+                    const bfDelta =
+                      m.body_fat_pct != null && prev?.body_fat_pct != null ? m.body_fat_pct - prev.body_fat_pct : null
+                    const mDelta =
+                      m.muscle_mass_kg != null && prev?.muscle_mass_kg != null
+                        ? m.muscle_mass_kg - prev.muscle_mass_kg
+                        : null
 
-                  const wDelta =
-                    m.weight_kg != null && prev?.weight_kg != null ? m.weight_kg - prev.weight_kg : null
-                  const bfDelta =
-                    m.body_fat_pct != null && prev?.body_fat_pct != null ? m.body_fat_pct - prev.body_fat_pct : null
-                  const mDelta =
-                    m.muscle_mass_kg != null && prev?.muscle_mass_kg != null
-                      ? m.muscle_mass_kg - prev.muscle_mass_kg
-                      : null
+                    return (
+                      <tr key={m.id}>
+                        <td style={{ fontWeight: 700, fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                          {new Date(m.measured_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                          {idx === 0 && (
+                            <span
+                              className="badge badge-brand"
+                              style={{ marginLeft: 8, fontSize: '10px', padding: '2px 6px' }}
+                            >
+                              Latest
+                            </span>
+                          )}
+                          {idx === sortedLatest.length - 1 && sortedLatest.length > 1 && (
+                            <span
+                              className="badge"
+                              style={{
+                                marginLeft: 8,
+                                fontSize: '10px',
+                                padding: '2px 6px',
+                                background: 'var(--cream-300)',
+                                color: 'var(--text-muted)',
+                              }}
+                            >
+                              Baseline
+                            </span>
+                          )}
+                        </td>
 
-                  return (
-                    <tr key={m.id}>
-                      <td style={{ fontWeight: 700, fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
-                        {new Date(m.measured_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                        {/* Weight & Delta */}
+                        <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>
+                          {m.weight_kg != null ? `${m.weight_kg} kg` : '—'}
+                        </td>
+                        <td>
+                          {prev ? (
+                            renderDeltaBadge(wDelta, 'kg', true)
+                          ) : (
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
+                          )}
+                        </td>
+
+                        {/* Body Fat & Delta */}
+                        <td style={{ fontWeight: 600 }}>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
+                        <td>
+                          {prev ? (
+                            renderDeltaBadge(bfDelta, '%', true)
+                          ) : (
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
+                          )}
+                        </td>
+
+                        {/* Muscle Mass & Delta */}
+                        <td style={{ fontWeight: 600 }}>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
+                        <td>
+                          {prev ? (
+                            renderDeltaBadge(mDelta, 'kg', false)
+                          ) : (
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
+                          )}
+                        </td>
+
+                        {/* Notes */}
+                        <td style={{ color: 'var(--text-secondary)', maxWidth: 200 }} className="truncate" title={m.notes ?? ''}>
+                          {m.notes || '—'}
+                        </td>
+
+                        {/* Actions */}
+                        <td style={{ textAlign: 'right' }}>
+                          <ClientEditMeasurementActions m={m} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="mobile-card-view">
+              {sortedLatest.map((m, idx) => {
+                const prev = sortedLatest[idx + 1]
+                const wDelta =
+                  m.weight_kg != null && prev?.weight_kg != null ? m.weight_kg - prev.weight_kg : null
+                const bfDelta =
+                  m.body_fat_pct != null && prev?.body_fat_pct != null ? m.body_fat_pct - prev.body_fat_pct : null
+                const mDelta =
+                  m.muscle_mass_kg != null && prev?.muscle_mass_kg != null
+                    ? m.muscle_mass_kg - prev.muscle_mass_kg
+                    : null
+
+                return (
+                  <div key={m.id} className="mobile-data-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontWeight: 700, fontSize: '13px' }}>
+                          {new Date(m.measured_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
                         {idx === 0 && (
-                          <span
-                            className="badge badge-brand"
-                            style={{ marginLeft: 8, fontSize: '10px', padding: '2px 6px' }}
-                          >
+                          <span className="badge badge-brand" style={{ fontSize: '9px', padding: '1px 5px' }}>
                             Latest
                           </span>
                         )}
                         {idx === sortedLatest.length - 1 && sortedLatest.length > 1 && (
-                          <span
-                            className="badge"
-                            style={{
-                              marginLeft: 8,
-                              fontSize: '10px',
-                              padding: '2px 6px',
-                              background: 'var(--cream-300)',
-                              color: 'var(--text-muted)',
-                            }}
-                          >
+                          <span className="badge" style={{ fontSize: '9px', padding: '1px 5px', background: 'var(--cream-300)', color: 'var(--text-muted)' }}>
                             Baseline
                           </span>
                         )}
-                      </td>
+                      </div>
+                      <ClientEditMeasurementActions m={m} />
+                    </div>
 
-                      {/* Weight & Delta */}
-                      <td style={{ fontWeight: 700, color: 'var(--brand-700)' }}>
-                        {m.weight_kg != null ? `${m.weight_kg} kg` : '—'}
-                      </td>
-                      <td>
-                        {prev ? (
-                          renderDeltaBadge(wDelta, 'kg', true)
-                        ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, background: 'var(--cream-300)', padding: '8px 10px', borderRadius: 'var(--radius-md)' }}>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>WEIGHT</div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--brand-700)' }}>
+                          {m.weight_kg != null ? `${m.weight_kg}k` : '—'}
+                        </div>
+                        {prev && wDelta != null && Math.abs(wDelta) >= 0.1 && (
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(wDelta, 'k', true)}</div>
                         )}
-                      </td>
+                      </div>
 
-                      {/* Body Fat & Delta */}
-                      <td style={{ fontWeight: 600 }}>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</td>
-                      <td>
-                        {prev ? (
-                          renderDeltaBadge(bfDelta, '%', true)
-                        ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>BODY FAT</div>
+                        <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                          {m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}
+                        </div>
+                        {prev && bfDelta != null && Math.abs(bfDelta) >= 0.1 && (
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(bfDelta, '%', true)}</div>
                         )}
-                      </td>
+                      </div>
 
-                      {/* Muscle Mass & Delta */}
-                      <td style={{ fontWeight: 600 }}>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</td>
-                      <td>
-                        {prev ? (
-                          renderDeltaBadge(mDelta, 'kg', false)
-                        ) : (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Baseline</span>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>MUSCLE</div>
+                        <div style={{ fontSize: '14px', fontWeight: 700 }}>
+                          {m.muscle_mass_kg != null ? `${m.muscle_mass_kg}k` : '—'}
+                        </div>
+                        {prev && mDelta != null && Math.abs(mDelta) >= 0.1 && (
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(mDelta, 'k', false)}</div>
                         )}
-                      </td>
+                      </div>
+                    </div>
 
-                      {/* Notes */}
-                      <td style={{ color: 'var(--text-secondary)', maxWidth: 200 }} className="truncate" title={m.notes ?? ''}>
-                        {m.notes || '—'}
-                      </td>
-
-                      {/* Actions */}
-                      <td style={{ textAlign: 'right' }}>
-                        <ClientEditMeasurementActions m={m} />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                    {m.notes && (
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                        &quot;{m.notes}&quot;
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 
         {/* TAB 2: BODY CIRCUMFERENCES & DIMENSIONS */}
         {activeTab === 'body-parts' && (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Chest</th>
-                  <th>Arm</th>
-                  <th>Glutes</th>
-                  <th>Abs</th>
-                  <th>Leg</th>
-                  <th>Calf</th>
-                  <th>Back</th>
-                  <th>Notes</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedLatest.map((m, idx) => {
-                  const prev = sortedLatest[idx + 1]
+          <div>
+            {/* Desktop Table View */}
+            <div className="desktop-table-view table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Chest</th>
+                    <th>Arm</th>
+                    <th>Glutes</th>
+                    <th>Abs</th>
+                    <th>Leg</th>
+                    <th>Calf</th>
+                    <th>Back</th>
+                    <th>Notes</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedLatest.map((m, idx) => {
+                    const prev = sortedLatest[idx + 1]
+                    const cDelta = m.chest_cm != null && prev?.chest_cm != null ? m.chest_cm - prev.chest_cm : null
+                    const aDelta = m.arm_cm != null && prev?.arm_cm != null ? m.arm_cm - prev.arm_cm : null
+                    const hDelta = m.hips_cm != null && prev?.hips_cm != null ? m.hips_cm - prev.hips_cm : null
+                    const wDelta = m.waist_cm != null && prev?.waist_cm != null ? m.waist_cm - prev.waist_cm : null
+                    const tDelta = m.thigh_cm != null && prev?.thigh_cm != null ? m.thigh_cm - prev.thigh_cm : null
+                    const calfDelta = m.calf_cm != null && prev?.calf_cm != null ? m.calf_cm - prev.calf_cm : null
+                    const backDelta = m.back_cm != null && prev?.back_cm != null ? m.back_cm - prev.back_cm : null
 
-                  const cDelta = m.chest_cm != null && prev?.chest_cm != null ? m.chest_cm - prev.chest_cm : null
-                  const aDelta = m.arm_cm != null && prev?.arm_cm != null ? m.arm_cm - prev.arm_cm : null
-                  const hDelta = m.hips_cm != null && prev?.hips_cm != null ? m.hips_cm - prev.hips_cm : null
-                  const wDelta = m.waist_cm != null && prev?.waist_cm != null ? m.waist_cm - prev.waist_cm : null
-                  const tDelta = m.thigh_cm != null && prev?.thigh_cm != null ? m.thigh_cm - prev.thigh_cm : null
-                  const calfDelta = m.calf_cm != null && prev?.calf_cm != null ? m.calf_cm - prev.calf_cm : null
-                  const backDelta = m.back_cm != null && prev?.back_cm != null ? m.back_cm - prev.back_cm : null
+                    return (
+                      <tr key={m.id}>
+                        <td style={{ fontWeight: 700, fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+                          {new Date(m.measured_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </td>
+                        <td>
+                          <div>{m.chest_cm != null ? `${m.chest_cm} cm` : '—'}</div>
+                          {prev && cDelta != null && Math.abs(cDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(cDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.arm_cm != null ? `${m.arm_cm} cm` : '—'}</div>
+                          {prev && aDelta != null && Math.abs(aDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(aDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.hips_cm != null ? `${m.hips_cm} cm` : '—'}</div>
+                          {prev && hDelta != null && Math.abs(hDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(hDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.waist_cm != null ? `${m.waist_cm} cm` : '—'}</div>
+                          {prev && wDelta != null && Math.abs(wDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(wDelta, 'cm', true)}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.thigh_cm != null ? `${m.thigh_cm} cm` : '—'}</div>
+                          {prev && tDelta != null && Math.abs(tDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(tDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.calf_cm != null ? `${m.calf_cm} cm` : '—'}</div>
+                          {prev && calfDelta != null && Math.abs(calfDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(calfDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.back_cm != null ? `${m.back_cm} cm` : '—'}</div>
+                          {prev && backDelta != null && Math.abs(backDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(backDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>
+                          {m.notes || '—'}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <ClientEditMeasurementActions m={m} />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-                  return (
-                    <tr key={m.id}>
-                      <td style={{ fontWeight: 700, fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' }}>
+            {/* Mobile Card View for Body Circumferences */}
+            <div className="mobile-card-view">
+              {sortedLatest.map((m, idx) => {
+                const prev = sortedLatest[idx + 1]
+                const cDelta = m.chest_cm != null && prev?.chest_cm != null ? m.chest_cm - prev.chest_cm : null
+                const aDelta = m.arm_cm != null && prev?.arm_cm != null ? m.arm_cm - prev.arm_cm : null
+                const hDelta = m.hips_cm != null && prev?.hips_cm != null ? m.hips_cm - prev.hips_cm : null
+                const wDelta = m.waist_cm != null && prev?.waist_cm != null ? m.waist_cm - prev.waist_cm : null
+                const tDelta = m.thigh_cm != null && prev?.thigh_cm != null ? m.thigh_cm - prev.thigh_cm : null
+                const calfDelta = m.calf_cm != null && prev?.calf_cm != null ? m.calf_cm - prev.calf_cm : null
+                const backDelta = m.back_cm != null && prev?.back_cm != null ? m.back_cm - prev.back_cm : null
+
+                return (
+                  <div key={m.id} className="mobile-data-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13px' }}>
                         {new Date(m.measured_at).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                         })}
-                      </td>
+                      </span>
+                      <ClientEditMeasurementActions m={m} />
+                    </div>
 
-                      {/* Chest */}
-                      <td>
-                        <div>{m.chest_cm != null ? `${m.chest_cm} cm` : '—'}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px 8px', background: 'var(--cream-300)', padding: '8px 10px', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Chest: </span>
+                        <strong>{m.chest_cm != null ? `${m.chest_cm}` : '—'}</strong>
                         {prev && cDelta != null && Math.abs(cDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(cDelta, 'cm')}</div>
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(cDelta, '')}</div>
                         )}
-                      </td>
-
-                      {/* Arm */}
-                      <td>
-                        <div>{m.arm_cm != null ? `${m.arm_cm} cm` : '—'}</div>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Arm: </span>
+                        <strong>{m.arm_cm != null ? `${m.arm_cm}` : '—'}</strong>
                         {prev && aDelta != null && Math.abs(aDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(aDelta, 'cm')}</div>
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(aDelta, '')}</div>
                         )}
-                      </td>
-
-                      {/* Glutes / Hips */}
-                      <td>
-                        <div>{m.hips_cm != null ? `${m.hips_cm} cm` : '—'}</div>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Glutes: </span>
+                        <strong>{m.hips_cm != null ? `${m.hips_cm}` : '—'}</strong>
                         {prev && hDelta != null && Math.abs(hDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(hDelta, 'cm')}</div>
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(hDelta, '')}</div>
                         )}
-                      </td>
-
-                      {/* Abs / Waist */}
-                      <td>
-                        <div>{m.waist_cm != null ? `${m.waist_cm} cm` : '—'}</div>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Abs: </span>
+                        <strong>{m.waist_cm != null ? `${m.waist_cm}` : '—'}</strong>
                         {prev && wDelta != null && Math.abs(wDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(wDelta, 'cm', true)}</div>
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(wDelta, '', true)}</div>
                         )}
-                      </td>
-
-                      {/* Leg / Thigh */}
-                      <td>
-                        <div>{m.thigh_cm != null ? `${m.thigh_cm} cm` : '—'}</div>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Leg: </span>
+                        <strong>{m.thigh_cm != null ? `${m.thigh_cm}` : '—'}</strong>
                         {prev && tDelta != null && Math.abs(tDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(tDelta, 'cm')}</div>
+                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(tDelta, '')}</div>
                         )}
-                      </td>
-
-                      {/* Calf */}
-                      <td>
-                        <div>{m.calf_cm != null ? `${m.calf_cm} cm` : '—'}</div>
-                        {prev && calfDelta != null && Math.abs(calfDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(calfDelta, 'cm')}</div>
-                        )}
-                      </td>
-
-                      {/* Back */}
-                      <td>
-                        <div>{m.back_cm != null ? `${m.back_cm} cm` : '—'}</div>
-                        {prev && backDelta != null && Math.abs(backDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(backDelta, 'cm')}</div>
-                        )}
-                      </td>
-
-                      {/* Notes */}
-                      <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>
-                        {m.notes || '—'}
-                      </td>
-
-                      {/* Actions */}
-                      <td style={{ textAlign: 'right' }}>
-                        <ClientEditMeasurementActions m={m} />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Calf: </span>
+                        <strong>{m.calf_cm != null ? `${m.calf_cm}` : '—'}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Back: </span>
+                        <strong>{m.back_cm != null ? `${m.back_cm}` : '—'}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 

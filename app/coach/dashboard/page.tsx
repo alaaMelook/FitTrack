@@ -166,7 +166,7 @@ export default async function CoachDashboardPage() {
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-3" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
+      <div className="stat-grid-3" style={{ marginBottom: '1.75rem' }}>
         <div className="stat-card">
           <div className="stat-icon" style={{ background: 'rgba(140,86,212,0.1)', color: 'var(--brand-600)' }}>
             <Users size={20} />

@@ -111,14 +111,14 @@ export default async function ClientDashboardPage() {
       </div>
 
       {/* Top Stat Cards */}
-      <div className="grid grid-3" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
+      <div className="stat-grid-3" style={{ marginBottom: '1.75rem' }}>
         {/* Membership Card */}
         <div className="stat-card">
           <div className="stat-icon" style={{ background: isMembershipActive ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)', color: isMembershipActive ? '#16a34a' : '#dc2626' }}>
             <CreditCard size={20} />
           </div>
           <div>
-            <div className="stat-value" style={{ fontSize: 'var(--text-xl)' }}>
+            <div className="stat-value" style={{ fontSize: 'var(--text-lg)', fontWeight: 800 }}>
               {isMembershipActive ? 'Active' : 'Expired'}
             </div>
             <div className="stat-label">
@@ -160,7 +160,7 @@ export default async function ClientDashboardPage() {
       <div className="grid grid-2" style={{ gap: 'var(--space-6)' }}>
         {/* Recent Measurements */}
         <div className="card">
-          <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem' }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: '1.25rem', flexWrap: 'wrap', gap: 8 }}>
             <div>
               <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <TrendingUp size={18} style={{ color: 'var(--brand-600)' }} /> Recent Assessments
@@ -179,7 +179,8 @@ export default async function ClientDashboardPage() {
             </div>
           ) : (
             <div>
-              <div className="table-wrapper">
+              {/* Desktop Table View */}
+              <div className="desktop-table-view table-wrapper">
                 <table>
                   <thead>
                     <tr>
@@ -226,6 +227,61 @@ export default async function ClientDashboardPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Card View: Clean, 100% width, no horizontal scroll needed! */}
+              <div className="mobile-card-view">
+                {measurements.map((m, idx) => {
+                  const prev = measurements[idx + 1]
+                  const wDiff = m.weight_kg != null && prev?.weight_kg != null ? m.weight_kg - prev.weight_kg : null
+                  return (
+                    <div key={m.id} className="mobile-data-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 700, fontSize: '13px' }}>
+                            {new Date(m.measured_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                          {idx === 0 && (
+                            <span className="badge badge-brand" style={{ fontSize: '9px', padding: '1px 5px' }}>
+                              Latest
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--brand-700)' }}>
+                            {m.weight_kg != null ? `${m.weight_kg} kg` : '—'}
+                          </span>
+                          {prev && wDiff != null && Math.abs(wDiff) >= 0.1 && (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: wDiff < 0 ? '#15803d' : '#b91c1c',
+                                background: wDiff < 0 ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)',
+                                padding: '1px 5px',
+                                borderRadius: 'var(--radius-sm)',
+                              }}
+                            >
+                              {wDiff > 0 ? `+${wDiff.toFixed(1)}` : wDiff.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: 'var(--cream-300)', padding: '6px 10px', borderRadius: 'var(--radius-md)', fontSize: '12px' }}>
+                        <div>
+                          <span style={{ color: 'var(--text-muted)' }}>Body Fat: </span>
+                          <span style={{ fontWeight: 700 }}>{m.body_fat_pct != null ? `${m.body_fat_pct}%` : '—'}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: 'var(--text-muted)' }}>Muscle: </span>
+                          <span style={{ fontWeight: 700 }}>{m.muscle_mass_kg != null ? `${m.muscle_mass_kg} kg` : '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
               <div style={{ marginTop: '0.875rem', textAlign: 'right' }}>
                 <a
                   href="/client/my-progress"

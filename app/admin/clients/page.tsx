@@ -104,90 +104,168 @@ export default async function AdminClientsPage() {
           <p style={{ fontWeight: 600 }}>No clients found</p>
         </div>
       ) : (
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Phone</th>
-                <th>Assigned Coach</th>
-                <th>Membership</th>
-                <th>Status</th>
-                <th>Joined</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map((c: any) => {
-                const user = c.users
-                const activeAssignment = (c.coach_assignments || []).find((a: any) => a.ended_at === null)
-                const coachName = activeAssignment?.coaches?.users?.full_name
+        <div>
+          {/* Desktop Table View */}
+          <div className="desktop-table-view table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Phone</th>
+                  <th>Assigned Coach</th>
+                  <th>Membership</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((c: any) => {
+                  const user = c.users
+                  const activeAssignment = (c.coach_assignments || []).find((a: any) => a.ended_at === null)
+                  const coachName = activeAssignment?.coaches?.users?.full_name
 
-                const latestMembership = (c.memberships || [])
-                  .sort((a: any, b: any) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime())[0]
+                  const latestMembership = (c.memberships || [])
+                    .sort((a: any, b: any) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime())[0]
 
-                const isMemActive = latestMembership ? latestMembership.end_date >= today : false
+                  const isMemActive = latestMembership ? latestMembership.end_date >= today : false
 
-                const initials = user?.full_name
-                  ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-                  : 'CL'
+                  const initials = user?.full_name
+                    ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                    : 'CL'
 
-                return (
-                  <tr key={c.id} style={{ opacity: user?.is_active ? 1 : 0.55 }}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                        <div
-                          className="avatar-fallback avatar-md"
-                          style={{ background: 'linear-gradient(135deg, var(--brand-600), var(--brand-800))', color: '#fff', fontSize: 'var(--text-xs)', fontWeight: 700 }}
-                        >
-                          {initials}
+                  return (
+                    <tr key={c.id} style={{ opacity: user?.is_active ? 1 : 0.55 }}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                          <div
+                            className="avatar-fallback avatar-md"
+                            style={{ background: 'linear-gradient(135deg, var(--brand-600), var(--brand-800))', color: '#fff', fontSize: 'var(--text-xs)', fontWeight: 700 }}
+                          >
+                            {initials}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{user?.full_name ?? '—'}</div>
+                            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{user?.email}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{user?.full_name ?? '—'}</div>
-                          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>{user?.email}</div>
-                        </div>
+                      </td>
+                      <td style={{ fontSize: 'var(--text-xs)' }}>{user?.phone || '—'}</td>
+                      <td>
+                        {coachName ? (
+                          <span className="badge badge-purple" style={{ fontWeight: 600 }}>{coachName}</span>
+                        ) : (
+                          <span className="badge badge-neutral">Unassigned</span>
+                        )}
+                      </td>
+                      <td>
+                        {latestMembership ? (
+                          <span className={isMemActive ? 'badge badge-success' : 'badge badge-error'} style={{ fontSize: 10 }}>
+                            {isMemActive ? 'Active' : 'Expired'}
+                          </span>
+                        ) : (
+                          <span className="badge badge-neutral">None</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={user?.is_active ? 'badge badge-success' : 'badge badge-neutral'}>
+                          {user?.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                        {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td>
+                        {user?.id && (
+                          <AdminClientActions
+                            clientId={c.id}
+                            clientUserId={user.id}
+                            isActive={user.is_active ?? true}
+                            clientName={user.full_name ?? 'Client'}
+                          />
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="mobile-card-view">
+            {clients.map((c: any) => {
+              const user = c.users
+              const activeAssignment = (c.coach_assignments || []).find((a: any) => a.ended_at === null)
+              const coachName = activeAssignment?.coaches?.users?.full_name
+
+              const latestMembership = (c.memberships || [])
+                .sort((a: any, b: any) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime())[0]
+
+              const isMemActive = latestMembership ? latestMembership.end_date >= today : false
+
+              const initials = user?.full_name
+                ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                : 'CL'
+
+              return (
+                <div key={c.id} className="mobile-data-card" style={{ opacity: user?.is_active ? 1 : 0.55 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                      <div
+                        className="avatar-fallback avatar-md"
+                        style={{ background: 'linear-gradient(135deg, var(--brand-600), var(--brand-800))', color: '#fff', fontSize: 'var(--text-xs)', fontWeight: 700 }}
+                      >
+                        {initials}
                       </div>
-                    </td>
-                    <td style={{ fontSize: 'var(--text-xs)' }}>{user?.phone || '—'}</td>
-                    <td>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px' }}>{user?.full_name ?? '—'}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{user?.email}</div>
+                      </div>
+                    </div>
+                    <span className={user?.is_active ? 'badge badge-success' : 'badge badge-neutral'} style={{ fontSize: '10px' }}>
+                      {user?.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', background: 'var(--cream-300)', padding: '6px 10px', borderRadius: 'var(--radius-md)', fontSize: '11px' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>Coach: </span>
                       {coachName ? (
-                        <span className="badge badge-purple" style={{ fontWeight: 600 }}>{coachName}</span>
+                        <span className="badge badge-purple" style={{ fontSize: '10px', padding: '1px 5px' }}>{coachName}</span>
                       ) : (
-                        <span className="badge badge-neutral">Unassigned</span>
+                        <span className="badge badge-neutral" style={{ fontSize: '10px', padding: '1px 5px' }}>Unassigned</span>
                       )}
-                    </td>
-                    <td>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>Plan: </span>
                       {latestMembership ? (
-                        <span className={isMemActive ? 'badge badge-success' : 'badge badge-error'} style={{ fontSize: 10 }}>
+                        <span className={isMemActive ? 'badge badge-success' : 'badge badge-error'} style={{ fontSize: '10px', padding: '1px 5px' }}>
                           {isMemActive ? 'Active' : 'Expired'}
                         </span>
                       ) : (
-                        <span className="badge badge-neutral">None</span>
+                        <span className="badge badge-neutral" style={{ fontSize: '10px', padding: '1px 5px' }}>None</span>
                       )}
-                    </td>
-                    <td>
-                      <span className={user?.is_active ? 'badge badge-success' : 'badge badge-neutral'}>
-                        {user?.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
-                      {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </td>
-                    <td>
-                      {user?.id && (
-                        <AdminClientActions
-                          clientId={c.id}
-                          clientUserId={user.id}
-                          isActive={user.is_active ?? true}
-                          clientName={user.full_name ?? 'Client'}
-                        />
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: 6 }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                      Joined {new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                    {user?.id && (
+                      <AdminClientActions
+                        clientId={c.id}
+                        clientUserId={user.id}
+                        isActive={user.is_active ?? true}
+                        clientName={user.full_name ?? 'Client'}
+                      />
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

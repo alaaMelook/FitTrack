@@ -872,9 +872,52 @@ dialog::backdrop {
   display: none;
 }
 
+/* Adaptive desktop table vs mobile card view */
+.desktop-table-view {
+  display: block;
+}
+.mobile-card-view {
+  display: none;
+}
+
+.mobile-data-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.stat-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.stat-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+}
+
 @media (max-width: 1024px) {
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4, .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .desktop-table-view {
+    display: none !important;
+  }
+  .mobile-card-view {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
 }
 
 @media (max-width: 768px) {
@@ -893,20 +936,30 @@ dialog::backdrop {
     min-height: 42px;
   }
 
-  /* Sidebar wrapper — off-canvas on mobile */
+  /* Sidebar wrapper — strictly pinned to left edge */
   .sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    height: 100dvh;
+    width: min(280px, 80vw);
+    z-index: 100;
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: none;
   }
   .sidebar-wrapper.open {
     transform: translateX(0);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 4px 0 35px rgba(0, 0, 0, 0.35);
   }
 
-  /* Sidebar drawer width */
+  /* Sidebar drawer */
   .sidebar {
-    width: min(300px, 86vw);
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
     box-shadow: none;
     background: #ffffff;
   }
@@ -915,9 +968,27 @@ dialog::backdrop {
   .sidebar-overlay {
     position: fixed;
     inset: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
     background: rgba(18, 9, 31, 0.55);
     backdrop-filter: blur(4px);
-    z-index: 45;
+    z-index: 95;
+  }
+
+  /* Stat Grids on Mobile: Clean 2-column or 2+1 grid */
+  .stat-grid-3 {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .stat-grid-3 > :last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+
+  .stat-grid-4 {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 
   /* Main content layout */
@@ -925,6 +996,9 @@ dialog::backdrop {
     margin-left: 0;
     padding-top: 0;
     padding-bottom: 78px; /* space for mobile bottom nav */
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   /* Mobile top bar */

@@ -72,7 +72,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-4" style={{ gap: 'var(--space-4)', marginBottom: '2rem' }}>
+      <div className="stat-grid-4" style={{ marginBottom: '1.75rem' }}>
         <Link href="/admin/clients" style={{ textDecoration: 'none', color: 'inherit' }}>
           <StatCard
             icon={<Users size={20} />}
