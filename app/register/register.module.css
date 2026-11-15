@@ -162,7 +162,33 @@
   cursor: pointer;
 }
 
-.coachOption input { width: 18px; height: 18px; margin: 0; }
+.coachOption input {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  margin: 0;
+  border: 1.5px solid #c9bfd3;
+  border-radius: 7px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.coachOption input:checked {
+  border-color: var(--brand-600);
+  background-color: var(--brand-600);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 8 3.2 3.2L13 4.5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 15px;
+}
+
+.coachOption input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand-600) 25%, transparent);
+  outline-offset: 2px;
+}
+
 .coachSelected { border-color: var(--brand-600); background: var(--brand-50); }
 
 .coachAvatar {
