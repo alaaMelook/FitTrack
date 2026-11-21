@@ -156,6 +156,18 @@ export function AddClientMeasurementModal() {
                 </div>
               </div>
 
+              {/* Upper Body & Lower Body */}
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
+                <div className="form-group">
+                  <label htmlFor="upperBodyCm">Upper Body (cm)</label>
+                  <input id="upperBodyCm" name="upperBodyCm" type="number" step="0.1" placeholder="e.g. 110.0" />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="lowerBodyCm">Lower Body (cm)</label>
+                  <input id="lowerBodyCm" name="lowerBodyCm" type="number" step="0.1" placeholder="e.g. 98.0" />
+                </div>
+              </div>
+
               {/* 10. Body Fat & 11. Muscle Mass */}
               <div className="form-row-2col" style={{ marginBottom: 'var(--space-4)' }}>
                 <div className="form-group">

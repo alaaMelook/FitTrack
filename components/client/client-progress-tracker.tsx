@@ -33,6 +33,8 @@ export type Measurement = {
   thigh_cm: number | null
   calf_cm?: number | null
   back_cm?: number | null
+  upper_body_cm?: number | null
+  lower_body_cm?: number | null
   notes: string | null
   created_at?: string
 }
@@ -545,6 +547,8 @@ export function ClientProgressTracker({ measurements }: Props) {
                     <th>Leg</th>
                     <th>Calf</th>
                     <th>Back</th>
+                    <th>Upper Body</th>
+                    <th>Lower Body</th>
                     <th>Notes</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
@@ -559,6 +563,8 @@ export function ClientProgressTracker({ measurements }: Props) {
                     const tDelta = m.thigh_cm != null && prev?.thigh_cm != null ? m.thigh_cm - prev.thigh_cm : null
                     const calfDelta = m.calf_cm != null && prev?.calf_cm != null ? m.calf_cm - prev.calf_cm : null
                     const backDelta = m.back_cm != null && prev?.back_cm != null ? m.back_cm - prev.back_cm : null
+                    const upperDelta = m.upper_body_cm != null && prev?.upper_body_cm != null ? m.upper_body_cm - prev.upper_body_cm : null
+                    const lowerDelta = m.lower_body_cm != null && prev?.lower_body_cm != null ? m.lower_body_cm - prev.lower_body_cm : null
 
                     return (
                       <tr key={m.id}>
@@ -609,6 +615,18 @@ export function ClientProgressTracker({ measurements }: Props) {
                           <div>{m.back_cm != null ? `${m.back_cm} cm` : '—'}</div>
                           {prev && backDelta != null && Math.abs(backDelta) >= 0.1 && (
                             <div style={{ marginTop: 2 }}>{renderDeltaBadge(backDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.upper_body_cm != null ? `${m.upper_body_cm} cm` : '—'}</div>
+                          {prev && upperDelta != null && Math.abs(upperDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(upperDelta, 'cm')}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.lower_body_cm != null ? `${m.lower_body_cm} cm` : '—'}</div>
+                          {prev && lowerDelta != null && Math.abs(lowerDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(lowerDelta, 'cm')}</div>
                           )}
                         </td>
                         <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>

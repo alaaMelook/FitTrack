@@ -14,6 +14,8 @@ interface Measurement {
   thigh_cm: number | null
   calf_cm?: number | null
   back_cm?: number | null
+  upper_body_cm?: number | null
+  lower_body_cm?: number | null
   weight_kg: number | null
   body_fat_pct: number | null
   muscle_mass_kg: number | null
@@ -120,6 +122,17 @@ export function ClientEditMeasurementActions({ m }: { m: Measurement }) {
               <div className="form-group">
                 <label>Weight (kg)</label>
                 <input name="weightKg" type="number" step="0.1" defaultValue={m.weight_kg ?? ''} placeholder="—" />
+              </div>
+            </div>
+
+            <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
+              <div className="form-group">
+                <label>Upper Body (cm)</label>
+                <input name="upperBodyCm" type="number" step="0.1" defaultValue={m.upper_body_cm ?? ''} placeholder="—" />
+              </div>
+              <div className="form-group">
+                <label>Lower Body (cm)</label>
+                <input name="lowerBodyCm" type="number" step="0.1" defaultValue={m.lower_body_cm ?? ''} placeholder="—" />
               </div>
             </div>
 

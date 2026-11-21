@@ -73,3 +73,32 @@ export async function deleteProgramAction(formData: FormData) {
   revalidatePath('/coach/programs'); revalidatePath('/client/nutrition'); revalidatePath('/client/workouts'); revalidatePath('/admin/programs')
   redirect('/coach/programs?deleted=1')
 }
+
+export async function coachAddExerciseAction(formData: FormData) {
+  const session = await requireCoach()
+  const name = String(formData.get('name') ?? '').trim()
+  const muscle_group = String(formData.get('muscle_group') ?? '').trim()
+  const description = String(formData.get('description') ?? '').trim() || null
+  const video_url = String(formData.get('video_url') ?? '').trim() || null
+
+  if (!name || !muscle_group) {
+    redirect('/coach/programs?tab=exercises&error=missing-fields')
+  }
+
+  const db: any = createAdminClient()
+  const { error } = await db.from('exercise_library').insert({
+    name,
+    muscle_group,
+    description,
+    video_url,
+    created_by_user_id: session.id,
+  })
+
+  if (error) {
+    redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath('/coach/programs')
+  revalidatePath('/admin/programs')
+  redirect('/coach/programs?tab=exercises&saved=1')
+}
