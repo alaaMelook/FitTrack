@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
@@ -37,7 +38,7 @@ function countWorkoutDays(schedule: unknown): { total: number; workout: number; 
   return { total, workout: total - rest, rest }
 }
 
-/* ─── Tab navigation link (pure HTML <a>) ────────────────────── */
+/* ─── Tab navigation link (Next.js Link with scroll={false}) ─── */
 function TabLink({
   label,
   tabKey,
@@ -48,8 +49,9 @@ function TabLink({
   active: boolean
 }) {
   return (
-    <a
+    <Link
       href={`/admin/programs?tab=${tabKey}`}
+      scroll={false}
       style={{
         padding: '8px 20px',
         borderRadius: 'var(--radius-md)',
@@ -63,7 +65,7 @@ function TabLink({
       }}
     >
       {label}
-    </a>
+    </Link>
   )
 }
 
