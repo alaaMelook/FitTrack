@@ -2,7 +2,22 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { saveProgramAction } from '@/app/coach/programs/actions'
-import { Dumbbell, Plus, Trash2, Video, Info } from 'lucide-react'
+import {
+  Dumbbell,
+  Plus,
+  Trash2,
+  Video,
+  Image as ImageIcon,
+  ArrowUp,
+  ArrowDown,
+  ArrowRightLeft,
+  Calendar,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Moon,
+  Check
+} from 'lucide-react'
 
 export type ExerciseItem = {
   name: string
@@ -12,7 +27,9 @@ export type ExerciseItem = {
   weight: string
   restSeconds: number | ''
   instructions: string
+  notes?: string
   videoUrl: string
+  imageUrl?: string
 }
 
 export type DayPlan = {
@@ -32,7 +49,15 @@ export type ExerciseOption = {
 
 type Client = { id: string; name: string }
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const DEFAULT_DAYS = [
+  { day: 'Day 1', workout: 'Chest & Triceps', restDay: false },
+  { day: 'Day 2', workout: 'Back & Biceps', restDay: false },
+  { day: 'Day 3', workout: 'Legs & Calves', restDay: false },
+  { day: 'Day 4', workout: 'Shoulders & Abs', restDay: false },
+  { day: 'Day 5', workout: 'Full Body / Conditioning', restDay: false },
+  { day: 'Day 6', workout: 'Cardio & Mobility', restDay: false },
+  { day: 'Day 7', workout: 'Rest Day', restDay: true },
+]
 
 function emptyExercise(): ExerciseItem {
   return {
@@ -43,17 +68,19 @@ function emptyExercise(): ExerciseItem {
     weight: '',
     restSeconds: 60,
     instructions: '',
+    notes: '',
     videoUrl: '',
+    imageUrl: '',
   }
 }
 
-function emptyDay(dayName: string): DayPlan {
+function createDay(dayLabel: string, workoutName = 'Training Session', restDay = false): DayPlan {
   return {
-    day: dayName,
-    workout: dayName === 'Sunday' ? 'Rest' : 'Full Body',
-    restDay: dayName === 'Sunday',
+    day: dayLabel,
+    workout: restDay ? 'Rest & Recovery' : workoutName,
+    restDay,
     notes: '',
-    exercises: dayName === 'Sunday' ? [] : [emptyExercise()],
+    exercises: restDay ? [] : [emptyExercise()],
   }
 }
 
@@ -74,13 +101,17 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
     if (initialData?.schedule && initialData.schedule.length > 0) {
       return initialData.schedule
     }
-    return DAYS_OF_WEEK.map((d) => emptyDay(d))
+    return DEFAULT_DAYS.map((d) => createDay(d.day, d.workout, d.restDay))
   })
 
+  // Selected Day tab in the editor
+  const [activeDayIdx, setActiveDayIdx] = useState<number>(0)
+  const [viewMode, setViewMode] = useState<'single' | 'all'>('single')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
 
+  // Day manipulations
   function updateDay(dayIdx: number, field: keyof Omit<DayPlan, 'exercises'>, value: any) {
     setSchedule((prev) =>
       prev.map((d, i) => (i === dayIdx ? { ...d, [field]: value } : d))
@@ -88,13 +119,38 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
   }
 
   function addDay() {
-    setSchedule((prev) => [...prev, emptyDay(`Day ${prev.length + 1}`)])
+    setSchedule((prev) => {
+      const newDay = createDay(`Day ${prev.length + 1}`, 'New Workout Routine', false)
+      const next = [...prev, newDay]
+      setActiveDayIdx(next.length - 1)
+      return next
+    })
   }
 
   function removeDay(idx: number) {
-    setSchedule((prev) => prev.filter((_, i) => i !== idx))
+    if (schedule.length <= 1) {
+      setError('A workout plan must contain at least one day.')
+      return
+    }
+    setSchedule((prev) => {
+      const next = prev.filter((_, i) => i !== idx)
+      setActiveDayIdx((current) => Math.min(current, next.length - 1))
+      return next
+    })
   }
 
+  function moveDay(fromIdx: number, toIdx: number) {
+    if (toIdx < 0 || toIdx >= schedule.length) return
+    setSchedule((prev) => {
+      const clone = [...prev]
+      const [removed] = clone.splice(fromIdx, 1)
+      clone.splice(toIdx, 0, removed)
+      return clone
+    })
+    setActiveDayIdx(toIdx)
+  }
+
+  // Exercise manipulations within days
   function addExercise(dayIdx: number) {
     setSchedule((prev) =>
       prev.map((d, i) =>
@@ -128,6 +184,53 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
     )
   }
 
+  // Reorder exercise within a day
+  function moveExerciseUp(dayIdx: number, exIdx: number) {
+    if (exIdx <= 0) return
+    setSchedule((prev) =>
+      prev.map((d, i) => {
+        if (i !== dayIdx) return d
+        const exs = [...d.exercises]
+        const [moved] = exs.splice(exIdx, 1)
+        exs.splice(exIdx - 1, 0, moved)
+        return { ...d, exercises: exs }
+      })
+    )
+  }
+
+  function moveExerciseDown(dayIdx: number, exIdx: number) {
+    setSchedule((prev) =>
+      prev.map((d, i) => {
+        if (i !== dayIdx || exIdx >= d.exercises.length - 1) return d
+        const exs = [...d.exercises]
+        const [moved] = exs.splice(exIdx, 1)
+        exs.splice(exIdx + 1, 0, moved)
+        return { ...d, exercises: exs }
+      })
+    )
+  }
+
+  // Move exercise to another day
+  function moveExerciseToDay(fromDayIdx: number, exIdx: number, toDayIdx: number) {
+    if (fromDayIdx === toDayIdx || toDayIdx < 0 || toDayIdx >= schedule.length) return
+    setSchedule((prev) => {
+      const sourceDay = prev[fromDayIdx]
+      const exToMove = sourceDay.exercises[exIdx]
+      if (!exToMove) return prev
+
+      return prev.map((d, i) => {
+        if (i === fromDayIdx) {
+          return { ...d, exercises: d.exercises.filter((_, j) => j !== exIdx) }
+        }
+        if (i === toDayIdx) {
+          return { ...d, exercises: [...d.exercises, exToMove] }
+        }
+        return d
+      })
+    })
+  }
+
+  // Autocomplete select from global exercise library
   function handleSelectExercise(dayIdx: number, exIdx: number, exName: string) {
     const found = exerciseLibrary.find((e) => e.name.toLowerCase() === exName.toLowerCase())
     if (found) {
@@ -166,7 +269,7 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
 
     for (const d of schedule) {
       if (!d.day.trim()) {
-        setError('Each day in the schedule must have a day label.')
+        setError('Each day in the schedule must have a day label (e.g. Day 1, Monday).')
         return
       }
       if (!d.restDay && d.exercises.length === 0) {
@@ -188,6 +291,8 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
     })
   }
 
+  const activeDay = schedule[activeDayIdx] ?? schedule[0]
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'grid', gap: 'var(--space-5)' }}>
       {initialData && <input type="hidden" name="id" value={initialData.id} />}
@@ -199,10 +304,10 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
         </div>
       )}
 
-      {/* Basic Info */}
+      {/* Basic Info: Client, Title, Notes */}
       <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
         <label className="form-group">
-          <span>Client *</span>
+          <span>Target Client *</span>
           <select name="clientId" required defaultValue={initialData?.clientId ?? ''}>
             <option value="" disabled>Select a client…</option>
             {clients.map((c) => (
@@ -217,332 +322,196 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
             name="title"
             required
             maxLength={120}
-            placeholder="e.g. 4-Day Hypertrophy Split"
+            placeholder="e.g. 5-Day Push / Pull / Legs Hypertrophy Split"
             defaultValue={initialData?.title ?? ''}
           />
         </label>
       </div>
 
       <label className="form-group">
-        <span>Coach Notes / Instructions</span>
+        <span>Overall Plan Notes / Recommendations</span>
         <textarea
           name="notes"
           rows={2}
-          placeholder="Special instructions, progressive overload rules, hydration tips…"
+          placeholder="General training guidelines, progressive overload targets, warm-up routines..."
           defaultValue={initialData?.notes ?? ''}
         />
       </label>
 
-      {/* Weekly Schedule Days */}
-      <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
-        <div className="flex items-center justify-between">
-          <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Dumbbell size={18} style={{ color: 'var(--brand-600)' }} />
-            Weekly Workout Schedule ({schedule.length} Days)
-          </h3>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={addDay}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-          >
-            <Plus size={14} /> Add Day
-          </button>
-        </div>
+      {/* ── Day Management Bar ── */}
+      <div
+        style={{
+          borderTop: '1px solid var(--border-subtle)',
+          paddingTop: 'var(--space-4)',
+        }}
+      >
+        <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Layers size={18} style={{ color: 'var(--brand-600)' }} />
+              Schedule Days ({schedule.length} Days)
+            </h3>
+            <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+              {schedule.filter((d) => !d.restDay).length} Workouts • {schedule.filter((d) => d.restDay).length} Rest
+            </span>
+          </div>
 
-        {schedule.map((dayPlan, dayIdx) => (
-          <div
-            key={dayIdx}
-            className="card"
-            style={{
-              padding: 'var(--space-4)',
-              background: dayPlan.restDay ? 'var(--bg-subtle, #f8fafc)' : 'var(--bg-surface, #ffffff)',
-              border: dayPlan.restDay ? '1px dashed var(--border-subtle)' : '1px solid var(--border-subtle)',
-            }}
-          >
-            {/* Day Header */}
-            <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  value={dayPlan.day}
-                  onChange={(e) => updateDay(dayIdx, 'day', e.target.value)}
-                  placeholder="e.g. Monday"
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 'var(--text-base)',
-                    width: 130,
-                    padding: '4px 8px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                />
-                <input
-                  type="text"
-                  value={dayPlan.workout}
-                  onChange={(e) => updateDay(dayIdx, 'workout', e.target.value)}
-                  placeholder="e.g. Upper Body Focus"
-                  disabled={dayPlan.restDay}
-                  style={{
-                    fontSize: 'var(--text-sm)',
-                    width: 200,
-                    padding: '4px 8px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border-subtle)',
-                    opacity: dayPlan.restDay ? 0.6 : 1,
-                  }}
-                />
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-xs)', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={dayPlan.restDay}
-                    onChange={(e) => {
-                      const isRest = e.target.checked
-                      updateDay(dayIdx, 'restDay', isRest)
-                      if (isRest) {
-                        updateDay(dayIdx, 'workout', 'Rest Day')
-                      }
-                    }}
-                  />
-                  <span>Mark as Rest Day</span>
-                </label>
-              </div>
-
-              <div style={{ display: 'flex', gap: 6 }}>
-                {!dayPlan.restDay && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => addExercise(dayIdx)}
-                    style={{ fontSize: 'var(--text-xs)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                  >
-                    <Plus size={13} /> Add Exercise
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => removeDay(dayIdx)}
-                  style={{ color: 'var(--error, #dc2626)', padding: '2px 6px' }}
-                  title="Remove Day"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {/* View Mode Toggle */}
+            <div style={{ display: 'flex', background: 'var(--cream-300)', padding: 2, borderRadius: 'var(--radius-md)' }}>
+              <button
+                type="button"
+                onClick={() => setViewMode('single')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: viewMode === 'single' ? '#ffffff' : 'transparent',
+                  color: viewMode === 'single' ? 'var(--brand-700)' : 'var(--text-secondary)',
+                  boxShadow: viewMode === 'single' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                Day-by-Day Editor
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('all')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  background: viewMode === 'all' ? '#ffffff' : 'transparent',
+                  color: viewMode === 'all' ? 'var(--brand-700)' : 'var(--text-secondary)',
+                  boxShadow: viewMode === 'all' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                }}
+              >
+                View All Days
+              </button>
             </div>
 
-            {/* Day Notes */}
-            <input
-              type="text"
-              value={dayPlan.notes}
-              onChange={(e) => updateDay(dayIdx, 'notes', e.target.value)}
-              placeholder="Day notes (e.g. Warm up with 5 mins treadmill, focus on eccentric tempo)"
-              style={{
-                width: '100%',
-                fontSize: 'var(--text-xs)',
-                padding: '6px 10px',
-                marginBottom: dayPlan.restDay ? 0 : 12,
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-              }}
-            />
-
-            {/* Exercises List */}
-            {!dayPlan.restDay && (
-              <div style={{ display: 'grid', gap: 10 }}>
-                {dayPlan.exercises.map((ex, exIdx) => (
-                  <div
-                    key={exIdx}
-                    style={{
-                      background: 'var(--bg-elevated, #f1f5f9)',
-                      padding: '10px 12px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--border-subtle)',
-                      display: 'grid',
-                      gap: 8,
-                    }}
-                  >
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
-                      {/* Name / Autocomplete from library */}
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', fontWeight: 600 }}>EXERCISE NAME</span>
-                        <input
-                          type="text"
-                          list="exercise-library-datalist"
-                          value={ex.name}
-                          onChange={(e) => handleSelectExercise(dayIdx, exIdx, e.target.value)}
-                          placeholder="Bench Press..."
-                          required
-                          style={{
-                            width: '100%',
-                            fontSize: 'var(--text-xs)',
-                            fontWeight: 600,
-                            padding: '4px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Muscle Group */}
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>MUSCLE GROUP</span>
-                        <input
-                          type="text"
-                          value={ex.muscleGroup}
-                          onChange={(e) => updateExercise(dayIdx, exIdx, 'muscleGroup', e.target.value)}
-                          placeholder="Chest, Back..."
-                          style={{
-                            width: '100%',
-                            fontSize: 'var(--text-xs)',
-                            padding: '4px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Sets */}
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>SETS</span>
-                        <input
-                          type="number"
-                          min="1"
-                          max="20"
-                          value={ex.sets}
-                          onChange={(e) => updateExercise(dayIdx, exIdx, 'sets', e.target.value ? Number(e.target.value) : '')}
-                          style={{
-                            width: '100%',
-                            fontSize: 'var(--text-xs)',
-                            padding: '4px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Reps */}
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>REPS</span>
-                        <input
-                          type="text"
-                          value={ex.reps}
-                          onChange={(e) => updateExercise(dayIdx, exIdx, 'reps', e.target.value)}
-                          placeholder="8-12"
-                          style={{
-                            width: '100%',
-                            fontSize: 'var(--text-xs)',
-                            padding: '4px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Weight */}
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>WEIGHT</span>
-                        <input
-                          type="text"
-                          value={ex.weight}
-                          onChange={(e) => updateExercise(dayIdx, exIdx, 'weight', e.target.value)}
-                          placeholder="e.g. 60kg / Bodyweight"
-                          style={{
-                            width: '100%',
-                            fontSize: 'var(--text-xs)',
-                            padding: '4px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Rest Seconds */}
-                      <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>REST (SEC)</span>
-                        <input
-                          type="number"
-                          step="15"
-                          min="0"
-                          max="300"
-                          value={ex.restSeconds}
-                          onChange={(e) => updateExercise(dayIdx, exIdx, 'restSeconds', e.target.value ? Number(e.target.value) : '')}
-                          placeholder="60"
-                          style={{
-                            width: '100%',
-                            fontSize: 'var(--text-xs)',
-                            padding: '4px 6px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        onClick={() => removeExercise(dayIdx, exIdx)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: 'var(--error, #dc2626)',
-                          padding: 4,
-                          marginTop: 14,
-                        }}
-                        title="Remove Exercise"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-
-                    {/* Instructions + Video URL in collapsible/compact row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
-                      <input
-                        type="text"
-                        value={ex.instructions}
-                        onChange={(e) => updateExercise(dayIdx, exIdx, 'instructions', e.target.value)}
-                        placeholder="Instructions / Cues: Retract scapula, keep elbows at 45°..."
-                        style={{
-                          width: '100%',
-                          fontSize: '11px',
-                          padding: '3px 6px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-surface, #fff)',
-                        }}
-                      />
-                      <input
-                        type="url"
-                        value={ex.videoUrl}
-                        onChange={(e) => updateExercise(dayIdx, exIdx, 'videoUrl', e.target.value)}
-                        placeholder="Demo Video URL (YouTube / Loom...)"
-                        style={{
-                          width: '100%',
-                          fontSize: '11px',
-                          padding: '3px 6px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-surface, #fff)',
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-
-                {dayPlan.exercises.length === 0 && (
-                  <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0 }}>
-                    No exercises added yet for this day. Click &quot;Add Exercise&quot; above.
-                  </p>
-                )}
-              </div>
-            )}
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={addDay}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '12px' }}
+            >
+              <Plus size={14} /> Add Day
+            </button>
           </div>
-        ))}
+        </div>
+
+        {/* Day Selector Pills */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 6,
+            overflowX: 'auto',
+            paddingBottom: 8,
+            marginBottom: 'var(--space-4)',
+          }}
+        >
+          {schedule.map((dayItem, idx) => {
+            const isSelected = idx === activeDayIdx && viewMode === 'single'
+            const isRest = dayItem.restDay
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setActiveDayIdx(idx)
+                  setViewMode('single')
+                }}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: isSelected
+                    ? '2px solid var(--brand-600)'
+                    : isRest
+                    ? '1px dashed var(--border-subtle)'
+                    : '1px solid var(--border-subtle)',
+                  background: isSelected
+                    ? 'var(--brand-600)'
+                    : isRest
+                    ? 'var(--cream-300)'
+                    : 'var(--bg-elevated, #f8fafc)',
+                  color: isSelected ? '#ffffff' : isRest ? '#64748b' : 'var(--text-primary)',
+                  fontWeight: isSelected ? 700 : 500,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>{dayItem.day}</span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    opacity: isSelected ? 0.9 : 0.7,
+                  }}
+                >
+                  ({isRest ? 'Rest' : `${dayItem.exercises.length} ex`})
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Datalist for exercise name auto-complete from exercise library */}
+      {/* ── Days Render Section ── */}
+      {viewMode === 'single' && activeDay ? (
+        <DayEditorCard
+          dayPlan={activeDay}
+          dayIdx={activeDayIdx}
+          totalDays={schedule.length}
+          exerciseLibrary={exerciseLibrary}
+          allDays={schedule.map((d, i) => ({ idx: i, label: d.day }))}
+          onUpdateDay={updateDay}
+          onRemoveDay={removeDay}
+          onMoveDay={moveDay}
+          onAddExercise={addExercise}
+          onRemoveExercise={removeExercise}
+          onUpdateExercise={updateExercise}
+          onMoveExerciseUp={moveExerciseUp}
+          onMoveExerciseDown={moveExerciseDown}
+          onMoveExerciseToDay={moveExerciseToDay}
+          onSelectExercise={handleSelectExercise}
+        />
+      ) : (
+        <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+          {schedule.map((dayItem, dIdx) => (
+            <DayEditorCard
+              key={dIdx}
+              dayPlan={dayItem}
+              dayIdx={dIdx}
+              totalDays={schedule.length}
+              exerciseLibrary={exerciseLibrary}
+              allDays={schedule.map((d, i) => ({ idx: i, label: d.day }))}
+              onUpdateDay={updateDay}
+              onRemoveDay={removeDay}
+              onMoveDay={moveDay}
+              onAddExercise={addExercise}
+              onRemoveExercise={removeExercise}
+              onUpdateExercise={updateExercise}
+              onMoveExerciseUp={moveExerciseUp}
+              onMoveExerciseDown={moveExerciseDown}
+              onMoveExerciseToDay={moveExerciseToDay}
+              onSelectExercise={handleSelectExercise}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Datalist for auto-completing exercise library names */}
       <datalist id="exercise-library-datalist">
         {exerciseLibrary.map((ex) => (
           <option key={ex.id} value={ex.name}>
@@ -551,17 +520,532 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
         ))}
       </datalist>
 
-      {/* Submit Button */}
-      <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end', marginTop: 'var(--space-2)' }}>
+      {/* Submit Action */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--space-3)',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          marginTop: 'var(--space-4)',
+          borderTop: '1px solid var(--border-subtle)',
+          paddingTop: 'var(--space-4)',
+        }}
+      >
         <button
           type="submit"
           className="btn btn-primary"
           disabled={isPending}
-          style={{ minWidth: 160 }}
+          style={{ minWidth: 180 }}
         >
           {isPending ? 'Saving Workout Plan…' : initialData ? 'Update Workout Plan' : 'Save Workout Plan'}
         </button>
       </div>
     </form>
+  )
+}
+
+/**
+ * Individual Day Editor Card Component
+ */
+function DayEditorCard({
+  dayPlan,
+  dayIdx,
+  totalDays,
+  exerciseLibrary,
+  allDays,
+  onUpdateDay,
+  onRemoveDay,
+  onMoveDay,
+  onAddExercise,
+  onRemoveExercise,
+  onUpdateExercise,
+  onMoveExerciseUp,
+  onMoveExerciseDown,
+  onMoveExerciseToDay,
+  onSelectExercise,
+}: {
+  dayPlan: DayPlan
+  dayIdx: number
+  totalDays: number
+  exerciseLibrary: ExerciseOption[]
+  allDays: { idx: number; label: string }[]
+  onUpdateDay: (dayIdx: number, field: keyof Omit<DayPlan, 'exercises'>, value: any) => void
+  onRemoveDay: (dayIdx: number) => void
+  onMoveDay: (fromIdx: number, toIdx: number) => void
+  onAddExercise: (dayIdx: number) => void
+  onRemoveExercise: (dayIdx: number, exIdx: number) => void
+  onUpdateExercise: (dayIdx: number, exIdx: number, field: keyof ExerciseItem, value: any) => void
+  onMoveExerciseUp: (dayIdx: number, exIdx: number) => void
+  onMoveExerciseDown: (dayIdx: number, exIdx: number) => void
+  onMoveExerciseToDay: (fromDayIdx: number, exIdx: number, toDayIdx: number) => void
+  onSelectExercise: (dayIdx: number, exIdx: number, exName: string) => void
+}) {
+  return (
+    <div
+      className="card"
+      style={{
+        padding: 'var(--space-5)',
+        background: dayPlan.restDay ? 'var(--cream-300)' : 'var(--bg-surface, #ffffff)',
+        border: dayPlan.restDay ? '1px dashed var(--border-subtle)' : '1px solid var(--border-subtle)',
+      }}
+    >
+      {/* Day Top Bar */}
+      <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {/* Day Label input (e.g. Day 1, Monday) */}
+          <input
+            type="text"
+            value={dayPlan.day}
+            onChange={(e) => onUpdateDay(dayIdx, 'day', e.target.value)}
+            placeholder="e.g. Day 1 or Monday"
+            style={{
+              fontWeight: 800,
+              fontSize: 'var(--text-base)',
+              width: 130,
+              padding: '6px 10px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          />
+
+          {/* Workout / Muscle Focus Name (e.g. Chest & Triceps) */}
+          <input
+            type="text"
+            value={dayPlan.workout}
+            onChange={(e) => onUpdateDay(dayIdx, 'workout', e.target.value)}
+            placeholder="e.g. Chest & Triceps"
+            disabled={dayPlan.restDay}
+            style={{
+              fontSize: 'var(--text-sm)',
+              fontWeight: 600,
+              width: 230,
+              padding: '6px 10px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border-subtle)',
+              opacity: dayPlan.restDay ? 0.5 : 1,
+            }}
+          />
+
+          {/* Rest Day Toggle */}
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 'var(--text-xs)',
+              cursor: 'pointer',
+              fontWeight: 600,
+              background: dayPlan.restDay ? 'rgba(100, 116, 139, 0.15)' : 'var(--bg-elevated)',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-md)',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={dayPlan.restDay}
+              onChange={(e) => {
+                const isRest = e.target.checked
+                onUpdateDay(dayIdx, 'restDay', isRest)
+                if (isRest) {
+                  onUpdateDay(dayIdx, 'workout', 'Rest & Recovery')
+                }
+              }}
+            />
+            <span>{dayPlan.restDay ? 'Rest Day (Active)' : 'Mark as Rest Day'}</span>
+          </label>
+        </div>
+
+        {/* Day Actions: Move Left/Right, Add Exercise, Delete Day */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => onMoveDay(dayIdx, dayIdx - 1)}
+            disabled={dayIdx <= 0}
+            title="Move Day Left"
+            style={{ padding: '4px 8px' }}
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => onMoveDay(dayIdx, dayIdx + 1)}
+            disabled={dayIdx >= totalDays - 1}
+            title="Move Day Right"
+            style={{ padding: '4px 8px' }}
+          >
+            <ChevronRight size={14} />
+          </button>
+
+          {!dayPlan.restDay && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onAddExercise(dayIdx)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 'var(--text-xs)',
+                color: 'var(--brand-700)',
+                background: 'rgba(140, 86, 212, 0.08)',
+              }}
+            >
+              <Plus size={13} /> Add Exercise
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => onRemoveDay(dayIdx)}
+            style={{ color: 'var(--error, #dc2626)', padding: '4px 8px' }}
+            title="Delete this workout day"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+
+      {/* Day Notes */}
+      <input
+        type="text"
+        value={dayPlan.notes}
+        onChange={(e) => onUpdateDay(dayIdx, 'notes', e.target.value)}
+        placeholder="Day instructions (e.g. Dynamic mobility warm up 8 mins, strict 90s rest periods)"
+        style={{
+          width: '100%',
+          fontSize: 'var(--text-xs)',
+          padding: '6px 12px',
+          marginBottom: dayPlan.restDay ? 0 : 14,
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border-subtle)',
+          background: 'transparent',
+        }}
+      />
+
+      {/* Exercises List */}
+      {!dayPlan.restDay && (
+        <div style={{ display: 'grid', gap: 12 }}>
+          {dayPlan.exercises.map((ex, exIdx) => (
+            <div
+              key={exIdx}
+              style={{
+                background: 'var(--bg-elevated, #f8fafc)',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)',
+                display: 'grid',
+                gap: 10,
+              }}
+            >
+              {/* Exercise Header & Quick Controls (Reorder, Move, Delete) */}
+              <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      background: 'var(--brand-600)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {exIdx + 1}
+                  </span>
+                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    EXERCISE #{exIdx + 1}
+                  </span>
+                </div>
+
+                {/* Move Up, Move Down, Move to Day, Delete */}
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  {/* Reorder within day */}
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    disabled={exIdx <= 0}
+                    onClick={() => onMoveExerciseUp(dayIdx, exIdx)}
+                    style={{ padding: '2px 6px', height: 26 }}
+                    title="Move exercise up"
+                  >
+                    <ArrowUp size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    disabled={exIdx >= dayPlan.exercises.length - 1}
+                    onClick={() => onMoveExerciseDown(dayIdx, exIdx)}
+                    style={{ padding: '2px 6px', height: 26 }}
+                    title="Move exercise down"
+                  >
+                    <ArrowDown size={13} />
+                  </button>
+
+                  {/* Move to another day selector */}
+                  {allDays.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Move to:</span>
+                      <select
+                        value={dayIdx}
+                        onChange={(e) => onMoveExerciseToDay(dayIdx, exIdx, Number(e.target.value))}
+                        style={{
+                          fontSize: '11px',
+                          padding: '2px 6px',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border-subtle)',
+                          height: 26,
+                        }}
+                      >
+                        {allDays.map((d) => (
+                          <option key={d.idx} value={d.idx} disabled={d.idx === dayIdx}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => onRemoveExercise(dayIdx, exIdx)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--error, #dc2626)',
+                      padding: '4px 6px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                    title="Remove exercise"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Input Fields Row: Name, Muscle Group, Sets, Reps, Weight, Rest */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: 8,
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', fontWeight: 600 }}>NAME *</span>
+                  <input
+                    type="text"
+                    list="exercise-library-datalist"
+                    value={ex.name}
+                    onChange={(e) => onSelectExercise(dayIdx, exIdx, e.target.value)}
+                    placeholder="e.g. Incline Dumbbell Press"
+                    required
+                    style={{
+                      width: '100%',
+                      fontSize: 'var(--text-xs)',
+                      fontWeight: 600,
+                      padding: '5px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>MUSCLE GROUP</span>
+                  <input
+                    type="text"
+                    value={ex.muscleGroup}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'muscleGroup', e.target.value)}
+                    placeholder="e.g. Upper Chest / Shoulders"
+                    style={{
+                      width: '100%',
+                      fontSize: 'var(--text-xs)',
+                      padding: '5px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>SETS</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={ex.sets}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'sets', e.target.value ? Number(e.target.value) : '')}
+                    style={{
+                      width: '100%',
+                      fontSize: 'var(--text-xs)',
+                      padding: '5px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>REPS</span>
+                  <input
+                    type="text"
+                    value={ex.reps}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'reps', e.target.value)}
+                    placeholder="e.g. 8-12 or 15"
+                    style={{
+                      width: '100%',
+                      fontSize: 'var(--text-xs)',
+                      padding: '5px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>WEIGHT</span>
+                  <input
+                    type="text"
+                    value={ex.weight}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'weight', e.target.value)}
+                    placeholder="e.g. 24kg or Bodyweight"
+                    style={{
+                      width: '100%',
+                      fontSize: 'var(--text-xs)',
+                      padding: '5px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>REST TIME (SEC)</span>
+                  <input
+                    type="number"
+                    step="15"
+                    min="0"
+                    max="300"
+                    value={ex.restSeconds}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'restSeconds', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="60"
+                    style={{
+                      width: '100%',
+                      fontSize: 'var(--text-xs)',
+                      padding: '5px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Instructions & Notes Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>FORM CUES & INSTRUCTIONS</span>
+                  <input
+                    type="text"
+                    value={ex.instructions}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'instructions', e.target.value)}
+                    placeholder="e.g. 3-second eccentric tempo, pause at the bottom"
+                    style={{
+                      width: '100%',
+                      fontSize: '11px',
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-surface, #ffffff)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>ADDITIONAL NOTES / TARGET</span>
+                  <input
+                    type="text"
+                    value={ex.notes ?? ''}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'notes', e.target.value)}
+                    placeholder="e.g. Try to increase weight by 2.5kg if hitting 12 reps on all sets"
+                    style={{
+                      width: '100%',
+                      fontSize: '11px',
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-surface, #ffffff)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Media URLs: Demonstration Video & Exercise Image */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>DEMONSTRATION VIDEO URL</span>
+                  <input
+                    type="url"
+                    value={ex.videoUrl}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'videoUrl', e.target.value)}
+                    placeholder="https://youtube.com/... or Vimeo / Loom"
+                    style={{
+                      width: '100%',
+                      fontSize: '11px',
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-surface, #ffffff)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>EXERCISE IMAGE / DIAGRAM URL</span>
+                  <input
+                    type="url"
+                    value={ex.imageUrl ?? ''}
+                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'imageUrl', e.target.value)}
+                    placeholder="https://... (image URL)"
+                    style={{
+                      width: '100%',
+                      fontSize: '11px',
+                      padding: '4px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-surface, #ffffff)',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {dayPlan.exercises.length === 0 && (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 'var(--space-6)',
+                background: 'var(--bg-elevated)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--text-xs)',
+              }}
+            >
+              No exercises added yet for this day. Click &quot;Add Exercise&quot; above to start.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

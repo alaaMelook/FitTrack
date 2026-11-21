@@ -419,6 +419,44 @@ export default async function AdminProgramsPage({
                       )}
                     </p>
 
+                    {/* ── structured schedule viewer ── */}
+                    {!isEditing && Array.isArray(plan.schedule) && plan.schedule.length > 0 && (
+                      <details style={{ marginTop: '0.75rem', fontSize: 'var(--text-xs)' }}>
+                        <summary style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--brand-700)' }}>
+                          View Weekly Schedule ({plan.schedule.length} Days)
+                        </summary>
+                        <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                          {plan.schedule.map((dayItem: any, dIdx: number) => (
+                            <div
+                              key={dIdx}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                background: dayItem.restDay ? 'var(--cream-300)' : 'var(--bg-elevated)',
+                                border: '1px solid var(--border-subtle)',
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <strong>{dayItem.day} — {dayItem.workout || (dayItem.restDay ? 'Rest' : 'Workout')}</strong>
+                                <span className={dayItem.restDay ? 'badge badge-neutral' : 'badge badge-brand'} style={{ fontSize: '10px' }}>
+                                  {dayItem.restDay ? 'Rest Day' : `${dayItem.exercises?.length ?? 0} Exercises`}
+                                </span>
+                              </div>
+                              {!dayItem.restDay && Array.isArray(dayItem.exercises) && dayItem.exercises.length > 0 && (
+                                <div style={{ marginTop: 6, paddingLeft: 8, display: 'grid', gap: 2 }}>
+                                  {dayItem.exercises.map((ex: any, eIdx: number) => (
+                                    <div key={eIdx} style={{ color: 'var(--text-secondary)' }}>
+                                      • <strong>{ex.name}</strong> ({ex.muscleGroup || 'General'}) — {ex.sets} sets × {ex.reps} reps {ex.weight ? `· ${ex.weight}` : ''}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+
                     {/* ── inline edit form ── */}
                     {isEditing && (
                       <form
