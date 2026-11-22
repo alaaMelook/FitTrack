@@ -120,35 +120,35 @@ export function AddClientMeasurementModal() {
                 </div>
               </div>
 
-              {/* 4. Glutes & 5. Abs */}
+              {/* 4. Upper Abs & 5. Lower Abs */}
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
+                <div className="form-group">
+                  <label htmlFor="upperAbsCm">Upper Abs (cm)</label>
+                  <input id="upperAbsCm" name="upperAbsCm" type="number" step="0.1" placeholder="e.g. 74.0" />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="lowerAbsCm">Lower Abs (cm)</label>
+                  <input id="lowerAbsCm" name="lowerAbsCm" type="number" step="0.1" placeholder="e.g. 78.0" />
+                </div>
+              </div>
+
+              {/* 6. Glutes & 7. Leg */}
               <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
                   <label htmlFor="glutesCm">Glutes (cm)</label>
                   <input id="glutesCm" name="glutesCm" type="number" step="0.1" placeholder="e.g. 102.0" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="absCm">Abs (cm)</label>
-                  <input id="absCm" name="absCm" type="number" step="0.1" placeholder="e.g. 76.0" />
-                </div>
-              </div>
-
-              {/* 6. Leg & 7. Calf */}
-              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
-                <div className="form-group">
                   <label htmlFor="legCm">Leg (cm)</label>
                   <input id="legCm" name="legCm" type="number" step="0.1" placeholder="e.g. 56.0" />
                 </div>
+              </div>
+
+              {/* 8. Calf & 9. Weight */}
+              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
                 <div className="form-group">
                   <label htmlFor="calfCm">Calf (cm)</label>
                   <input id="calfCm" name="calfCm" type="number" step="0.1" placeholder="e.g. 36.5" />
-                </div>
-              </div>
-
-              {/* 8. Back & 9. Weight */}
-              <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
-                <div className="form-group">
-                  <label htmlFor="backCm">Back (cm)</label>
-                  <input id="backCm" name="backCm" type="number" step="0.1" placeholder="e.g. 105.0" />
                 </div>
                 <div className="form-group">
                   <label htmlFor="weightKg">Weight (kg)</label>

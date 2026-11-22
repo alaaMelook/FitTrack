@@ -13,10 +13,10 @@ function parseMeasurementFields(formData: FormData) {
     chestCm: formData.get('chestCm') ? parseFloat(formData.get('chestCm') as string) : null,
     armCm: formData.get('armCm') ? parseFloat(formData.get('armCm') as string) : null,
     glutesCm: formData.get('glutesCm') ? parseFloat(formData.get('glutesCm') as string) : null,
-    absCm: formData.get('absCm') ? parseFloat(formData.get('absCm') as string) : null,
+    upperAbsCm: formData.get('upperAbsCm') ? parseFloat(formData.get('upperAbsCm') as string) : null,
+    lowerAbsCm: formData.get('lowerAbsCm') ? parseFloat(formData.get('lowerAbsCm') as string) : null,
     legCm: formData.get('legCm') ? parseFloat(formData.get('legCm') as string) : null,
     calfCm: formData.get('calfCm') ? parseFloat(formData.get('calfCm') as string) : null,
-    backCm: formData.get('backCm') ? parseFloat(formData.get('backCm') as string) : null,
     weightKg: formData.get('weightKg') ? parseFloat(formData.get('weightKg') as string) : null,
     bodyFatPct: formData.get('bodyFatPct') ? parseFloat(formData.get('bodyFatPct') as string) : null,
     muscleMassKg: formData.get('muscleMassKg') ? parseFloat(formData.get('muscleMassKg') as string) : null,
@@ -34,7 +34,7 @@ export async function addMeasurementAction(prevState: any, formData: FormData) {
 
     const f = parseMeasurementFields(formData)
 
-    const hasAnyField = [f.chestCm, f.armCm, f.glutesCm, f.absCm, f.legCm, f.calfCm, f.backCm, f.weightKg, f.bodyFatPct, f.muscleMassKg, f.coachNotes]
+    const hasAnyField = [f.chestCm, f.armCm, f.glutesCm, f.upperAbsCm, f.lowerAbsCm, f.legCm, f.calfCm, f.weightKg, f.bodyFatPct, f.muscleMassKg, f.coachNotes]
       .some(val => val !== null && val !== '')
     if (!hasAnyField) return { success: false, error: 'Please enter at least one measurement.' }
 
@@ -45,19 +45,21 @@ export async function addMeasurementAction(prevState: any, formData: FormData) {
       chest_cm: f.chestCm,
       arm_cm: f.armCm,
       hips_cm: f.glutesCm,
-      waist_cm: f.absCm,
+      waist_cm: f.upperAbsCm ?? f.lowerAbsCm,
+      upper_abs_cm: f.upperAbsCm,
+      lower_abs_cm: f.lowerAbsCm,
       thigh_cm: f.legCm,
       calf_cm: f.calfCm,
-      back_cm: f.backCm,
       weight_kg: f.weightKg,
       body_fat_pct: f.bodyFatPct,
       muscle_mass_kg: f.muscleMassKg,
       notes: f.coachNotes || null,
-    })
+    } as any)
 
     if (insertError) return { success: false, error: insertError.message }
 
     revalidatePath(`/coach/my-clients/${clientId}`)
+    revalidatePath('/coach/measurements')
     revalidatePath('/coach/dashboard')
     return { success: true, error: null }
   } catch (err: any) {
@@ -84,10 +86,11 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
         chest_cm: f.chestCm,
         arm_cm: f.armCm,
         hips_cm: f.glutesCm,
-        waist_cm: f.absCm,
+        waist_cm: f.upperAbsCm ?? f.lowerAbsCm,
+        upper_abs_cm: f.upperAbsCm,
+        lower_abs_cm: f.lowerAbsCm,
         thigh_cm: f.legCm,
         calf_cm: f.calfCm,
-        back_cm: f.backCm,
         weight_kg: f.weightKg,
         body_fat_pct: f.bodyFatPct,
         muscle_mass_kg: f.muscleMassKg,
@@ -98,12 +101,12 @@ export async function editMeasurementAction(prevState: any, formData: FormData) 
     if (updateError) return { success: false, error: updateError.message }
 
     revalidatePath(`/coach/my-clients/${clientId}`)
+    revalidatePath('/coach/measurements')
     return { success: true, error: null }
   } catch (err: any) {
     return { success: false, error: err.message || 'An unexpected error occurred.' }
   }
 }
-
 
 /** Coach can delete a measurement belonging to their client */
 export async function deleteMeasurementAction(measurementId: string, clientId: string) {
@@ -119,6 +122,7 @@ export async function deleteMeasurementAction(measurementId: string, clientId: s
     if (error) return { success: false, error: error.message }
 
     revalidatePath(`/coach/my-clients/${clientId}`)
+    revalidatePath('/coach/measurements')
     return { success: true, error: null }
   } catch (err: any) {
     return { success: false, error: err.message }

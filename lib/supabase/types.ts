@@ -327,7 +327,11 @@ export type Database = {
           thigh_cm: number | null
           arm_cm: number | null
           calf_cm?: number | null
+          upper_abs_cm?: number | null
+          lower_abs_cm?: number | null
           back_cm?: number | null
+          upper_body_cm?: number | null
+          lower_body_cm?: number | null
           notes: string | null
           created_at: string
         }
@@ -345,7 +349,11 @@ export type Database = {
           thigh_cm?: number | null
           arm_cm?: number | null
           calf_cm?: number | null
+          upper_abs_cm?: number | null
+          lower_abs_cm?: number | null
           back_cm?: number | null
+          upper_body_cm?: number | null
+          lower_body_cm?: number | null
           notes?: string | null
           created_at?: string
         }
@@ -360,7 +368,11 @@ export type Database = {
           thigh_cm?: number | null
           arm_cm?: number | null
           calf_cm?: number | null
+          upper_abs_cm?: number | null
+          lower_abs_cm?: number | null
           back_cm?: number | null
+          upper_body_cm?: number | null
+          lower_body_cm?: number | null
           notes?: string | null
           updated_at?: string
         }
@@ -456,6 +468,102 @@ export type Database = {
         }
         Update: {
           [key: string]: never
+        }
+        Relationships: []
+      }
+      nutrition_plans: {
+        Row: {
+          id: string
+          client_id: string
+          coach_user_id: string
+          title: string
+          notes: string | null
+          meals: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          coach_user_id: string
+          title: string
+          notes?: string | null
+          meals?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          coach_user_id?: string
+          title?: string
+          notes?: string | null
+          meals?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      workout_plans: {
+        Row: {
+          id: string
+          client_id: string
+          coach_user_id: string
+          title: string
+          notes: string | null
+          schedule: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          coach_user_id: string
+          title: string
+          notes?: string | null
+          schedule?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          coach_user_id?: string
+          title?: string
+          notes?: string | null
+          schedule?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      exercise_library: {
+        Row: {
+          id: string
+          name: string
+          muscle_group: string
+          description: string | null
+          video_url: string | null
+          created_by_user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          muscle_group: string
+          description?: string | null
+          video_url?: string | null
+          created_by_user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          muscle_group?: string
+          description?: string | null
+          video_url?: string | null
+          created_by_user_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

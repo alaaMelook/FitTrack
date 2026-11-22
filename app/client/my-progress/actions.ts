@@ -13,17 +13,17 @@ export async function addClientSelfMeasurementAction(prevState: any, formData: F
     const chestCm = formData.get('chestCm') ? parseFloat(formData.get('chestCm') as string) : null
     const armCm = formData.get('armCm') ? parseFloat(formData.get('armCm') as string) : null
     const glutesCm = formData.get('glutesCm') ? parseFloat(formData.get('glutesCm') as string) : null
-    const absCm = formData.get('absCm') ? parseFloat(formData.get('absCm') as string) : null
+    const upperAbsCm = formData.get('upperAbsCm') ? parseFloat(formData.get('upperAbsCm') as string) : null
+    const lowerAbsCm = formData.get('lowerAbsCm') ? parseFloat(formData.get('lowerAbsCm') as string) : null
     const legCm = formData.get('legCm') ? parseFloat(formData.get('legCm') as string) : null
     const calfCm = formData.get('calfCm') ? parseFloat(formData.get('calfCm') as string) : null
-    const backCm = formData.get('backCm') ? parseFloat(formData.get('backCm') as string) : null
     const weightKg = formData.get('weightKg') ? parseFloat(formData.get('weightKg') as string) : null
     const bodyFatPct = formData.get('bodyFatPct') ? parseFloat(formData.get('bodyFatPct') as string) : null
     const muscleMassKg = formData.get('muscleMassKg') ? parseFloat(formData.get('muscleMassKg') as string) : null
     const userNotes = (formData.get('notes') as string) || ''
 
     // Check if at least one field is provided
-    const hasAnyField = [chestCm, armCm, glutesCm, absCm, legCm, calfCm, backCm, weightKg, bodyFatPct, muscleMassKg, userNotes]
+    const hasAnyField = [chestCm, armCm, glutesCm, upperAbsCm, lowerAbsCm, legCm, calfCm, weightKg, bodyFatPct, muscleMassKg, userNotes]
       .some(val => val !== null && val !== '')
 
     if (!hasAnyField) {
@@ -43,12 +43,6 @@ export async function addClientSelfMeasurementAction(prevState: any, formData: F
 
     const measuredAt = measuredAtStr ? new Date(measuredAtStr).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
 
-    // Construct extra details note if calf/back/glutes/abs are supplied
-    const extraDetails: string[] = []
-    if (calfCm) extraDetails.push(`Calf: ${calfCm}cm`)
-    if (backCm) extraDetails.push(`Back: ${backCm}cm`)
-    if (userNotes) extraDetails.push(userNotes)
-
     const { error: insertErr } = await adminSupabase.from('measurements').insert({
       client_id: clientRow.id,
       recorded_by_user_id: session.id,
@@ -56,15 +50,16 @@ export async function addClientSelfMeasurementAction(prevState: any, formData: F
       chest_cm: chestCm,
       arm_cm: armCm,
       hips_cm: glutesCm,
-      waist_cm: absCm,
+      waist_cm: upperAbsCm ?? lowerAbsCm,
+      upper_abs_cm: upperAbsCm,
+      lower_abs_cm: lowerAbsCm,
       thigh_cm: legCm,
       calf_cm: calfCm,
-      back_cm: backCm,
       weight_kg: weightKg,
       body_fat_pct: bodyFatPct,
       muscle_mass_kg: muscleMassKg,
       notes: userNotes || null,
-    })
+    } as any)
 
     if (insertErr) {
       console.error('Insert measurement error:', insertErr)
@@ -104,10 +99,10 @@ export async function editClientMeasurementAction(prevState: any, formData: Form
     const chestCm = formData.get('chestCm') ? parseFloat(formData.get('chestCm') as string) : null
     const armCm = formData.get('armCm') ? parseFloat(formData.get('armCm') as string) : null
     const glutesCm = formData.get('glutesCm') ? parseFloat(formData.get('glutesCm') as string) : null
-    const absCm = formData.get('absCm') ? parseFloat(formData.get('absCm') as string) : null
+    const upperAbsCm = formData.get('upperAbsCm') ? parseFloat(formData.get('upperAbsCm') as string) : null
+    const lowerAbsCm = formData.get('lowerAbsCm') ? parseFloat(formData.get('lowerAbsCm') as string) : null
     const legCm = formData.get('legCm') ? parseFloat(formData.get('legCm') as string) : null
     const calfCm = formData.get('calfCm') ? parseFloat(formData.get('calfCm') as string) : null
-    const backCm = formData.get('backCm') ? parseFloat(formData.get('backCm') as string) : null
     const weightKg = formData.get('weightKg') ? parseFloat(formData.get('weightKg') as string) : null
     const bodyFatPct = formData.get('bodyFatPct') ? parseFloat(formData.get('bodyFatPct') as string) : null
     const muscleMassKg = formData.get('muscleMassKg') ? parseFloat(formData.get('muscleMassKg') as string) : null
@@ -122,10 +117,11 @@ export async function editClientMeasurementAction(prevState: any, formData: Form
         chest_cm: chestCm,
         arm_cm: armCm,
         hips_cm: glutesCm,
-        waist_cm: absCm,
+        waist_cm: upperAbsCm ?? lowerAbsCm,
+        upper_abs_cm: upperAbsCm,
+        lower_abs_cm: lowerAbsCm,
         thigh_cm: legCm,
         calf_cm: calfCm,
-        back_cm: backCm,
         weight_kg: weightKg,
         body_fat_pct: bodyFatPct,
         muscle_mass_kg: muscleMassKg,
