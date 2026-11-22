@@ -272,24 +272,27 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                       )}
                     </div>
 
-                    {/* Meal Notes / Instructions (e.g. معالق 4 or prep timing) */}
+                    {/* Meal Notes / Instructions (e.g. prep timing, hydration notes) */}
                     {meal.notes && (
                       <div
                         style={{
                           background: '#f8fafc',
-                          padding: '8px 14px',
-                          borderRadius: '8px',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
                           border: '1px solid #e2e8f0',
                           marginBottom: 12,
                           fontSize: '13px',
-                          color: '#475569',
+                          color: '#334155',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 6,
+                          gap: 8,
                         }}
                       >
-                        <span style={{ fontWeight: 700, color: '#0f172a' }}>💡 Instructions:</span>
-                        <span>{meal.notes}</span>
+                        <span style={{ fontSize: '15px' }}>💡</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+                          <strong style={{ color: '#0f172a' }}>Instructions / تعليمات الوجبة:</strong>
+                          <span dir="auto">{meal.notes}</span>
+                        </div>
                       </div>
                     )}
 
@@ -310,8 +313,6 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                             displayPortion = rawPortion
                           } else if (rawQuantity && rawQuantity !== '0') {
                             displayPortion = rawUnit ? `${rawQuantity} ${rawUnit}` : rawQuantity
-                          } else if (meal.notes && meal.notes.trim()) {
-                            displayPortion = meal.notes.trim()
                           } else {
                             displayPortion = '1 Serving'
                           }
@@ -330,63 +331,91 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 flexWrap: 'wrap',
-                                gap: 10,
-                                padding: '10px 14px',
-                                borderRadius: '10px',
+                                gap: 12,
+                                padding: '12px 16px',
+                                borderRadius: '12px',
                                 background: '#f8fafc',
                                 border: '1px solid #e2e8f0',
                               }}
                             >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <span
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div
                                   style={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: '50%',
-                                    background: '#16a34a',
-                                    display: 'inline-block',
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '8px',
+                                    background: '#ecfdf5',
+                                    border: '1px solid #a7f3d0',
+                                    color: '#059669',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '14px',
+                                    flexShrink: 0,
                                   }}
-                                />
-                                <strong style={{ fontSize: '14.5px', color: '#0f172a' }}>
+                                >
+                                  🥗
+                                </div>
+                                <strong style={{ fontSize: '15px', color: '#0f172a' }}>
                                   {food.name}
                                 </strong>
                               </div>
 
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                                <span
+                                <div
                                   style={{
-                                    fontSize: '12px',
-                                    fontWeight: 700,
-                                    padding: '4px 12px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    padding: '5px 12px',
                                     borderRadius: '8px',
                                     background: '#ffffff',
-                                    color: '#0f172a',
                                     border: '1.5px solid #cbd5e1',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                                   }}
                                 >
-                                  {displayPortion}
-                                </span>
+                                  <span
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      color: '#64748b',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.04em',
+                                    }}
+                                  >
+                                    Portion / الكمية:
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: '13px',
+                                      fontWeight: 800,
+                                      color: '#0f172a',
+                                    }}
+                                    dir="auto"
+                                  >
+                                    {displayPortion}
+                                  </span>
+                                </div>
 
                                 {hasFoodMacros && (
                                   <div style={{ display: 'flex', gap: 6, fontSize: '11px', fontWeight: 700, flexWrap: 'wrap' }}>
                                     {fCal > 0 && (
-                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>
-                                        {fCal.toFixed(0)} kcal
+                                      <span style={{ padding: '3px 8px', borderRadius: '6px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>
+                                        🔥 {fCal.toFixed(0)} kcal
                                       </span>
                                     )}
                                     {fProt > 0 && (
-                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
+                                      <span style={{ padding: '3px 8px', borderRadius: '6px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
                                         {fProt.toFixed(1)}g P
                                       </span>
                                     )}
                                     {fCarb > 0 && (
-                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                                      <span style={{ padding: '3px 8px', borderRadius: '6px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
                                         {fCarb.toFixed(1)}g C
                                       </span>
                                     )}
                                     {fFat > 0 && (
-                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                                      <span style={{ padding: '3px 8px', borderRadius: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
                                         {fFat.toFixed(1)}g F
                                       </span>
                                     )}
