@@ -549,9 +549,9 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
         <div
           style={{
             display: 'flex',
-            gap: 6,
+            gap: 8,
             overflowX: 'auto',
-            paddingBottom: 8,
+            paddingBottom: 10,
             marginBottom: 'var(--space-4)',
           }}
         >
@@ -568,37 +568,42 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
                   setViewMode('single')
                 }}
                 style={{
-                  padding: '6px 12px',
-                  borderRadius: 'var(--radius-md)',
+                  padding: '8px 16px',
+                  borderRadius: '10px',
                   border: isSelected
-                    ? '2px solid var(--brand-600)'
+                    ? '2px solid #7c3aed'
                     : isRest
-                    ? '1px dashed var(--border-subtle)'
-                    : '1px solid var(--border-subtle)',
+                    ? '1.5px dashed #cbd5e1'
+                    : '1.5px solid #cbd5e1',
                   background: isSelected
-                    ? 'var(--brand-600)'
+                    ? '#7c3aed'
                     : isRest
-                    ? 'var(--cream-300)'
-                    : 'var(--bg-elevated, #f8fafc)',
-                  color: isSelected ? '#ffffff' : isRest ? '#64748b' : 'var(--text-primary)',
-                  fontWeight: isSelected ? 700 : 500,
-                  fontSize: '12px',
+                    ? '#f1f5f9'
+                    : '#ffffff',
+                  color: isSelected ? '#ffffff' : isRest ? '#64748b' : '#0f172a',
+                  fontWeight: isSelected ? 800 : 600,
+                  fontSize: '13px',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 8,
                   transition: 'all 0.15s ease',
+                  boxShadow: isSelected ? '0 3px 8px rgba(124, 58, 237, 0.25)' : 'none',
                 }}
               >
                 <span>{dayItem.day}</span>
                 <span
                   style={{
-                    fontSize: '10px',
-                    opacity: isSelected ? 0.9 : 0.7,
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    opacity: isSelected ? 0.95 : 0.75,
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    background: isSelected ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)',
                   }}
                 >
-                  ({isRest ? 'Rest' : `${dayItem.exercises.length} ex`})
+                  {isRest ? 'راحه (Rest)' : `${dayItem.exercises.length} تمرين`}
                 </span>
               </button>
             )
@@ -722,117 +727,150 @@ function DayEditorCard({
 }) {
   return (
     <div
-      className="card"
       style={{
-        padding: 'var(--space-5)',
-        background: dayPlan.restDay ? 'var(--cream-300)' : 'var(--bg-surface, #ffffff)',
-        border: dayPlan.restDay ? '1px dashed var(--border-subtle)' : '1px solid var(--border-subtle)',
+        padding: '24px',
+        borderRadius: '16px',
+        background: dayPlan.restDay ? '#f8fafc' : '#ffffff',
+        border: dayPlan.restDay ? '2px dashed #cbd5e1' : '1.5px solid #e2e8f0',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
       }}
     >
-      {/* Day Top Bar */}
-      <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {/* Day Label input (e.g. Day 1, Monday) */}
-          <input
-            type="text"
-            value={dayPlan.day}
-            onChange={(e) => onUpdateDay(dayIdx, 'day', e.target.value)}
-            placeholder="e.g. Day 1 or Monday"
-            style={{
-              fontWeight: 800,
-              fontSize: 'var(--text-base)',
-              width: 130,
-              padding: '6px 10px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          />
-
-          {/* Workout / Muscle Focus Name (e.g. Chest & Triceps) */}
-          <input
-            type="text"
-            value={dayPlan.workout}
-            onChange={(e) => onUpdateDay(dayIdx, 'workout', e.target.value)}
-            placeholder="e.g. Chest & Triceps"
-            disabled={dayPlan.restDay}
-            style={{
-              fontSize: 'var(--text-sm)',
-              fontWeight: 600,
-              width: 230,
-              padding: '6px 10px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-subtle)',
-              opacity: dayPlan.restDay ? 0.5 : 1,
-            }}
-          />
-
-          {/* Rest Day Toggle */}
-          <label
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 'var(--text-xs)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              background: dayPlan.restDay ? 'rgba(100, 116, 139, 0.15)' : 'var(--bg-elevated)',
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-md)',
-            }}
-          >
+      {/* ── Day Header Bar ── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 12,
+          marginBottom: 16,
+          borderBottom: '1px solid #f1f5f9',
+          paddingBottom: 14,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {/* Day Label (e.g. Day 1, Monday) */}
+          <div>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 4 }}>
+              رقم اليوم (Day Label)
+            </span>
             <input
-              type="checkbox"
-              checked={dayPlan.restDay}
-              onChange={(e) => {
-                const isRest = e.target.checked
-                onUpdateDay(dayIdx, 'restDay', isRest)
-                if (isRest) {
-                  onUpdateDay(dayIdx, 'workout', 'Rest & Recovery')
-                }
+              type="text"
+              value={dayPlan.day}
+              onChange={(e) => onUpdateDay(dayIdx, 'day', e.target.value)}
+              placeholder="e.g. Day 1 or Monday"
+              style={{
+                fontWeight: 800,
+                fontSize: '15px',
+                color: '#0f172a',
+                width: 140,
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1.5px solid #cbd5e1',
+                background: '#ffffff',
               }}
             />
-            <span>{dayPlan.restDay ? 'Rest Day (Active)' : 'Mark as Rest Day'}</span>
-          </label>
+          </div>
+
+          {/* Workout / Muscle Focus (e.g. Chest & Triceps) */}
+          <div>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 4 }}>
+              تركيز اليوم / العضلات المستهدفة
+            </span>
+            <input
+              type="text"
+              value={dayPlan.workout}
+              onChange={(e) => onUpdateDay(dayIdx, 'workout', e.target.value)}
+              placeholder="e.g. Chest & Triceps (صدر وترايسبس)"
+              disabled={dayPlan.restDay}
+              style={{
+                fontSize: '15px',
+                fontWeight: 700,
+                color: '#0f172a',
+                width: 280,
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1.5px solid #cbd5e1',
+                background: dayPlan.restDay ? '#f1f5f9' : '#ffffff',
+                opacity: dayPlan.restDay ? 0.6 : 1,
+              }}
+            />
+          </div>
+
+          {/* Rest Day Toggle */}
+          <div style={{ alignSelf: 'flex-end', marginBottom: 2 }}>
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: '13px',
+                cursor: 'pointer',
+                fontWeight: 700,
+                background: dayPlan.restDay ? '#fee2e2' : '#f1f5f9',
+                color: dayPlan.restDay ? '#991b1b' : '#334155',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: dayPlan.restDay ? '1px solid #fca5a5' : '1px solid #e2e8f0',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={dayPlan.restDay}
+                onChange={(e) => {
+                  const isRest = e.target.checked
+                  onUpdateDay(dayIdx, 'restDay', isRest)
+                  if (isRest) {
+                    onUpdateDay(dayIdx, 'workout', 'Rest & Recovery / يوم راحة')
+                  }
+                }}
+              />
+              <span>{dayPlan.restDay ? '✓ يوم راحة (Rest Day)' : 'تحديد كيوم راحة'}</span>
+            </label>
+          </div>
         </div>
 
-        {/* Day Actions: Move Left/Right, Add Exercise, Delete Day */}
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => onMoveDay(dayIdx, dayIdx - 1)}
-            disabled={dayIdx <= 0}
-            title="Move Day Left"
-            style={{ padding: '4px 8px' }}
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => onMoveDay(dayIdx, dayIdx + 1)}
-            disabled={dayIdx >= totalDays - 1}
-            title="Move Day Right"
-            style={{ padding: '4px 8px' }}
-          >
-            <ChevronRight size={14} />
-          </button>
+        {/* Day Actions (Move, Add Exercise, Delete Day) */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onMoveDay(dayIdx, dayIdx - 1)}
+              disabled={dayIdx <= 0}
+              title="Move Day Left"
+              style={{ padding: '6px 10px', height: 34, border: '1px solid #e2e8f0' }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onMoveDay(dayIdx, dayIdx + 1)}
+              disabled={dayIdx >= totalDays - 1}
+              title="Move Day Right"
+              style={{ padding: '6px 10px', height: 34, border: '1px solid #e2e8f0' }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
 
           {!dayPlan.restDay && (
             <button
               type="button"
-              className="btn btn-ghost btn-sm"
+              className="btn btn-primary btn-sm"
               onClick={() => onAddExercise(dayIdx)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 4,
-                fontSize: 'var(--text-xs)',
-                color: 'var(--brand-700)',
-                background: 'rgba(140, 86, 212, 0.08)',
+                gap: 6,
+                fontSize: '13px',
+                fontWeight: 700,
+                padding: '7px 16px',
+                borderRadius: '8px',
               }}
             >
-              <Plus size={13} /> Add Exercise
+              <Plus size={15} /> إضافة تمرين
             </button>
           )}
 
@@ -840,107 +878,140 @@ function DayEditorCard({
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => onRemoveDay(dayIdx)}
-            style={{ color: 'var(--error, #dc2626)', padding: '4px 8px' }}
+            style={{ color: '#dc2626', padding: '6px 10px', height: 34, border: '1px solid #fecaca' }}
             title="Delete this workout day"
           >
-            <Trash2 size={14} />
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
 
-      {/* Day Notes */}
-      <input
-        type="text"
-        value={dayPlan.notes}
-        onChange={(e) => onUpdateDay(dayIdx, 'notes', e.target.value)}
-        placeholder="Day instructions (e.g. Dynamic mobility warm up 8 mins, strict 90s rest periods)"
-        style={{
-          width: '100%',
-          fontSize: 'var(--text-xs)',
-          padding: '6px 12px',
-          marginBottom: dayPlan.restDay ? 0 : 14,
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border-subtle)',
-          background: 'transparent',
-        }}
-      />
+      {/* Day Instructions / Notes */}
+      <div style={{ marginBottom: dayPlan.restDay ? 0 : 20 }}>
+        <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>
+          ملاحظات وتعليمات اليوم (Instructions for this day)
+        </label>
+        <input
+          type="text"
+          value={dayPlan.notes}
+          onChange={(e) => onUpdateDay(dayIdx, 'notes', e.target.value)}
+          placeholder="مثلاً: إحماء ديناميكي 10 دقائق، الراحة بين الجولات 90 ثانية، التركيز على المدى الحركي الكامل"
+          style={{
+            width: '100%',
+            fontSize: '14px',
+            color: '#0f172a',
+            fontWeight: 500,
+            padding: '8px 14px',
+            borderRadius: '8px',
+            border: '1.5px solid #cbd5e1',
+            background: '#ffffff',
+          }}
+        />
+      </div>
 
-      {/* Exercises List */}
+      {/* ── Exercises List ── */}
       {!dayPlan.restDay && (
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div style={{ display: 'grid', gap: 16 }}>
           {dayPlan.exercises.map((ex, exIdx) => (
             <div
               key={exIdx}
               style={{
-                background: 'var(--bg-elevated, #f8fafc)',
-                padding: '12px 14px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
+                background: '#ffffff',
+                padding: '18px 20px',
+                borderRadius: '12px',
+                border: '1.5px solid #e2e8f0',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                 display: 'grid',
-                gap: 10,
+                gap: 14,
               }}
             >
-              {/* Exercise Header & Quick Controls (Reorder, Move, Delete) */}
-              <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Exercise Header */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  borderBottom: '1px solid #f1f5f9',
+                  paddingBottom: 10,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span
                     style={{
-                      width: 22,
-                      height: 22,
+                      width: 26,
+                      height: 26,
                       borderRadius: '50%',
-                      background: 'var(--brand-600)',
+                      background: '#7c3aed',
                       color: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '11px',
-                      fontWeight: 700,
+                      fontSize: '12px',
+                      fontWeight: 800,
                     }}
                   >
                     {exIdx + 1}
                   </span>
-                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                    EXERCISE #{exIdx + 1}
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                    تمرين #{exIdx + 1}
                   </span>
+                  {ex.name && (
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        padding: '2px 10px',
+                        borderRadius: '6px',
+                        background: 'rgba(124, 58, 237, 0.08)',
+                        color: '#6d28d9',
+                      }}
+                    >
+                      {ex.name}
+                    </span>
+                  )}
                 </div>
 
-                {/* Move Up, Move Down, Move to Day, Delete */}
-                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  {/* Reorder within day */}
+                {/* Move Up, Down, Move to Day, Delete */}
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
                     disabled={exIdx <= 0}
                     onClick={() => onMoveExerciseUp(dayIdx, exIdx)}
-                    style={{ padding: '2px 6px', height: 26 }}
+                    style={{ padding: '4px 8px', height: 30, border: '1px solid #e2e8f0' }}
                     title="Move exercise up"
                   >
-                    <ArrowUp size={13} />
+                    <ArrowUp size={14} />
                   </button>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"
                     disabled={exIdx >= dayPlan.exercises.length - 1}
                     onClick={() => onMoveExerciseDown(dayIdx, exIdx)}
-                    style={{ padding: '2px 6px', height: 26 }}
+                    style={{ padding: '4px 8px', height: 30, border: '1px solid #e2e8f0' }}
                     title="Move exercise down"
                   >
-                    <ArrowDown size={13} />
+                    <ArrowDown size={14} />
                   </button>
 
-                  {/* Move to another day selector */}
+                  {/* Move to another day */}
                   {allDays.length > 1 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Move to:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>نقل إلى:</span>
                       <select
                         value={dayIdx}
                         onChange={(e) => onMoveExerciseToDay(dayIdx, exIdx, Number(e.target.value))}
                         style={{
-                          fontSize: '11px',
-                          padding: '2px 6px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--border-subtle)',
-                          height: 26,
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          height: 30,
+                          background: '#ffffff',
+                          color: '#0f172a',
                         }}
                       >
                         {allDays.map((d) => (
@@ -956,120 +1027,159 @@ function DayEditorCard({
                     type="button"
                     onClick={() => onRemoveExercise(dayIdx, exIdx)}
                     style={{
-                      background: 'transparent',
-                      border: 'none',
+                      background: '#fee2e2',
+                      border: '1px solid #fecaca',
+                      borderRadius: '6px',
                       cursor: 'pointer',
-                      color: 'var(--error, #dc2626)',
-                      padding: '4px 6px',
+                      color: '#dc2626',
+                      padding: '4px 8px',
+                      height: 30,
                       display: 'inline-flex',
                       alignItems: 'center',
+                      gap: 4,
+                      fontSize: '12px',
+                      fontWeight: 700,
                     }}
                     title="Remove exercise"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={13} /> حذف
                   </button>
                 </div>
               </div>
 
-              {/* Input Fields Row: Name, Muscle Group, Sets, Reps, Weight, Rest */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                  gap: 8,
-                }}
-              >
+              {/* Row 1: Exercise Name (Library Autocomplete) & Muscle Group */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 14 }}>
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', fontWeight: 600 }}>NAME *</span>
+                  <span style={{ fontSize: '13px', color: '#0f172a', display: 'block', fontWeight: 700, marginBottom: 4 }}>
+                    اسم التمرين (Exercise Name) *
+                  </span>
                   <input
                     type="text"
                     list="exercise-library-datalist"
                     value={ex.name}
                     onChange={(e) => onSelectExercise(dayIdx, exIdx, e.target.value)}
-                    placeholder="e.g. Incline Dumbbell Press"
+                    placeholder="اختر من المكتبة أو اكتب اسم التمرين..."
                     required
                     style={{
                       width: '100%',
-                      fontSize: 'var(--text-xs)',
-                      fontWeight: 600,
-                      padding: '5px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>MUSCLE GROUP</span>
+                  <span style={{ fontSize: '13px', color: '#0f172a', display: 'block', fontWeight: 700, marginBottom: 4 }}>
+                    العضلة المستهدفة (Muscle Group)
+                  </span>
                   <input
                     type="text"
                     value={ex.muscleGroup}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'muscleGroup', e.target.value)}
-                    placeholder="e.g. Upper Chest / Shoulders"
+                    placeholder="e.g. Chest, Back, Legs..."
                     style={{
                       width: '100%',
-                      fontSize: 'var(--text-xs)',
-                      padding: '5px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#0f172a',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
+              </div>
 
+              {/* Row 2: 4 Clear Metric Boxes (Sets, Reps, Weight, Rest) */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: 12,
+                  background: '#f8fafc',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>SETS</span>
+                  <span style={{ fontSize: '12px', color: '#7c3aed', display: 'block', fontWeight: 800, marginBottom: 4 }}>
+                    SETS (المجموعات) *
+                  </span>
                   <input
                     type="number"
                     min="1"
                     max="20"
                     value={ex.sets}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'sets', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="3"
                     style={{
                       width: '100%',
-                      fontSize: 'var(--text-xs)',
-                      padding: '5px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>REPS</span>
+                  <span style={{ fontSize: '12px', color: '#2563eb', display: 'block', fontWeight: 800, marginBottom: 4 }}>
+                    REPS (العدات) *
+                  </span>
                   <input
                     type="text"
                     value={ex.reps}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'reps', e.target.value)}
-                    placeholder="e.g. 8-12 or 15"
+                    placeholder="e.g. 10-12 أو فشل عضلي"
                     style={{
                       width: '100%',
-                      fontSize: 'var(--text-xs)',
-                      padding: '5px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>WEIGHT</span>
+                  <span style={{ fontSize: '12px', color: '#059669', display: 'block', fontWeight: 800, marginBottom: 4 }}>
+                    WEIGHT (الوزن)
+                  </span>
                   <input
                     type="text"
                     value={ex.weight}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'weight', e.target.value)}
-                    placeholder="e.g. 24kg or Bodyweight"
+                    placeholder="e.g. 20kg أو وزن الجسم"
                     style={{
                       width: '100%',
-                      fontSize: 'var(--text-xs)',
-                      padding: '5px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>REST TIME (SEC)</span>
+                  <span style={{ fontSize: '12px', color: '#d97706', display: 'block', fontWeight: 800, marginBottom: 4 }}>
+                    REST (الراحة بالثواني)
+                  </span>
                   <input
                     type="number"
                     step="15"
@@ -1080,88 +1190,60 @@ function DayEditorCard({
                     placeholder="60"
                     style={{
                       width: '100%',
-                      fontSize: 'var(--text-xs)',
-                      padding: '5px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
               </div>
 
-              {/* Instructions & Notes Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+              {/* Row 3: Instructions & Video URL */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>FORM CUES & INSTRUCTIONS</span>
+                  <span style={{ fontSize: '12px', color: '#475569', display: 'block', fontWeight: 700, marginBottom: 4 }}>
+                    تكنيك وتعليمات التمرين (Form Cues & Instructions)
+                  </span>
                   <input
                     type="text"
                     value={ex.instructions}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'instructions', e.target.value)}
-                    placeholder="e.g. 3-second eccentric tempo, pause at the bottom"
+                    placeholder="مثلاً: نزول بطيء في 3 ثوان، ثبات ثانية في القاع، الحفاظ على استقامة الظهر"
                     style={{
                       width: '100%',
-                      fontSize: '11px',
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-surface, #ffffff)',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
 
                 <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>ADDITIONAL NOTES / TARGET</span>
-                  <input
-                    type="text"
-                    value={ex.notes ?? ''}
-                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'notes', e.target.value)}
-                    placeholder="e.g. Try to increase weight by 2.5kg if hitting 12 reps on all sets"
-                    style={{
-                      width: '100%',
-                      fontSize: '11px',
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-surface, #ffffff)',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Media URLs: Demonstration Video & Exercise Image */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>DEMONSTRATION VIDEO URL</span>
+                  <span style={{ fontSize: '12px', color: '#475569', display: 'block', fontWeight: 700, marginBottom: 4 }}>
+                    رابط فيديو التوضيح (Video Demo Link)
+                  </span>
                   <input
                     type="url"
                     value={ex.videoUrl}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'videoUrl', e.target.value)}
-                    placeholder="https://youtube.com/... or Vimeo / Loom"
+                    placeholder="https://youtube.com/... (اختياري)"
                     style={{
                       width: '100%',
-                      fontSize: '11px',
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-surface, #ffffff)',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block' }}>EXERCISE IMAGE / DIAGRAM URL</span>
-                  <input
-                    type="url"
-                    value={ex.imageUrl ?? ''}
-                    onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'imageUrl', e.target.value)}
-                    placeholder="https://... (image URL)"
-                    style={{
-                      width: '100%',
-                      fontSize: '11px',
-                      padding: '4px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-surface, #ffffff)',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      color: '#0f172a',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      background: '#ffffff',
                     }}
                   />
                 </div>
@@ -1173,14 +1255,16 @@ function DayEditorCard({
             <div
               style={{
                 textAlign: 'center',
-                padding: 'var(--space-6)',
-                background: 'var(--bg-elevated)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--text-secondary)',
-                fontSize: 'var(--text-xs)',
+                padding: '2rem 1rem',
+                background: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px dashed #cbd5e1',
+                color: '#64748b',
+                fontSize: '14px',
+                fontWeight: 600,
               }}
             >
-              No exercises added yet for this day. Click &quot;Add Exercise&quot; above to start.
+              لم تتم إضافة أي تمارين لهذا اليوم بعد. اضغط على زر &quot;إضافة تمرين&quot; بالأعلى للبدء.
             </div>
           )}
         </div>

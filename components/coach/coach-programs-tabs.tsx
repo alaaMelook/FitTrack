@@ -132,6 +132,7 @@ export default function CoachProgramsTabs({
             <NutritionPlanForm
               key={editNutritionPlan?.id ?? 'new-nutrition'}
               clients={clientList}
+              existingPlans={nutritionPlans}
               initialData={
                 editNutritionPlan
                   ? {

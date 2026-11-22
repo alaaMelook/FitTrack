@@ -59,7 +59,33 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
             {/* Plan Header */}
             <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12, marginBottom: '1rem' }}>
               <div>
-                <span className="badge badge-brand" style={{ marginBottom: 6 }}>Nutrition Plan</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span className="badge badge-brand">Nutrition Plan</span>
+                  {meals[0]?.planDuration && (
+                    <span
+                      className="badge"
+                      style={{
+                        fontSize: '11px',
+                        background: 'rgba(22, 163, 74, 0.12)',
+                        color: '#16a34a',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Duration:{' '}
+                      {meals[0].planDuration === 'daily'
+                        ? 'Daily Routine'
+                        : meals[0].planDuration === '1_week'
+                        ? '1 Week'
+                        : meals[0].planDuration === '2_weeks'
+                        ? '2 Weeks'
+                        : meals[0].planDuration === '1_month'
+                        ? '1 Month (4 Weeks)'
+                        : meals[0].planDuration === '2_months'
+                        ? '2 Months (8 Weeks)'
+                        : 'Ongoing'}
+                    </span>
+                  )}
+                </div>
                 <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 800 }}>{plan.title}</h2>
                 {plan.updated_at && (
                   <p className="text-secondary text-xs" style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
@@ -68,6 +94,27 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                 )}
               </div>
             </div>
+
+            {/* Optional Restricted Foods (قائمة الممنوعات) */}
+            {meals[0]?.restrictedFoods && (
+              <div
+                style={{
+                  background: '#fffbeb',
+                  border: '1.5px solid #fde68a',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '12px 16px',
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#92400e', fontWeight: 700, fontSize: 'var(--text-sm)' }}>
+                  <span style={{ fontSize: '16px' }}>⚠️</span>
+                  <span>قائمة الممنوعات (Restricted & Forbidden Foods):</span>
+                </div>
+                <p style={{ margin: '4px 0 0 0', fontSize: 'var(--text-sm)', color: '#78350f', fontWeight: 600 }}>
+                  {meals[0].restrictedFoods}
+                </p>
+              </div>
+            )}
 
             {plan.notes && (
               <div
@@ -184,7 +231,9 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                             {foods.map((food: any, j: number) => (
                               <tr key={`${food.name}-${j}`}>
                                 <td style={{ fontWeight: 600 }}>{food.name}</td>
-                                <td>{food.quantity} {food.unit || 'g'}</td>
+                                <td style={{ fontWeight: 600, color: '#0f172a' }}>
+                                  {food.portion || (food.quantity ? `${food.quantity} ${food.unit || ''}`.trim() : '—')}
+                                </td>
                                 <td><strong>{Number(food.calories || 0).toFixed(0)}</strong></td>
                                 <td>{Number(food.protein || 0).toFixed(1)}g</td>
                                 <td>{Number(food.carbs || 0).toFixed(1)}g</td>
