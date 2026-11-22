@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireCoach } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isRedirectError } from 'next/dist/client/components/redirect-error'
 
 function parseWorkoutPayload(raw: FormDataEntryValue | null) {
   if (typeof raw !== 'string') throw new Error('Add plan details before saving.')
@@ -47,11 +48,12 @@ export async function saveWorkoutPlanAction(formData: FormData) {
     redirect('/coach/workout-planner?error=missing-fields')
   }
 
+  let errorMsg: string | null = null
+
   try {
     await verifyAssignedClient(clientId, session.id)
     const rawDays = parseWorkoutPayload(formData.get('items'))
 
-    // Tag each day with the selected plan duration so it is preserved in JSONB
     const scheduleWithDuration = (rawDays as any[]).map((d) => ({
       ...d,
       planDuration: duration,
@@ -73,8 +75,13 @@ export async function saveWorkoutPlanAction(formData: FormData) {
 
     if (result.error) throw result.error
   } catch (error) {
+    if (isRedirectError(error)) throw error
     const message = error instanceof Error ? error.message : 'Unable to save this plan.'
-    redirect(`/coach/workout-planner?error=${encodeURIComponent(message)}`)
+    errorMsg = message
+  }
+
+  if (errorMsg) {
+    redirect(`/coach/workout-planner?error=${encodeURIComponent(errorMsg)}`)
   }
 
   revalidatePath('/coach/workout-planner')
@@ -91,6 +98,8 @@ export async function deleteWorkoutPlanAction(formData: FormData) {
 
   if (!id || !clientId) redirect('/coach/workout-planner?error=missing-fields')
 
+  let errorMsg: string | null = null
+
   try {
     await verifyAssignedClient(clientId, session.id)
     const db: any = createAdminClient()
@@ -103,8 +112,13 @@ export async function deleteWorkoutPlanAction(formData: FormData) {
 
     if (error) throw error
   } catch (error) {
+    if (isRedirectError(error)) throw error
     const message = error instanceof Error ? error.message : 'Unable to delete this plan.'
-    redirect(`/coach/workout-planner?error=${encodeURIComponent(message)}`)
+    errorMsg = message
+  }
+
+  if (errorMsg) {
+    redirect(`/coach/workout-planner?error=${encodeURIComponent(errorMsg)}`)
   }
 
   revalidatePath('/coach/workout-planner')

@@ -111,6 +111,14 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
     return firstDay?.planDuration || '1_month'
   })
 
+  // Controlled state for clientId and title to avoid false/0 defaults
+  const [selectedClientId, setSelectedClientId] = useState<string>(() => {
+    if (initialData?.clientId) return initialData.clientId
+    if (clients.length === 1) return clients[0].id
+    return ''
+  })
+  const [planTitle, setPlanTitle] = useState<string>(initialData?.title ?? '')
+
   // Selected Day tab in the editor
   const [activeDayIdx, setActiveDayIdx] = useState<number>(0)
   const [viewMode, setViewMode] = useState<'single' | 'all'>('single')
@@ -322,7 +330,12 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
       <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
         <label className="form-group">
           <span>Target Client *</span>
-          <select name="clientId" required defaultValue={initialData?.clientId ?? ''}>
+          <select
+            name="clientId"
+            required
+            value={selectedClientId}
+            onChange={(e) => setSelectedClientId(e.target.value)}
+          >
             <option value="" disabled>Select a client…</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -337,7 +350,8 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
             required
             maxLength={120}
             placeholder="e.g. 5-Day Push / Pull / Legs Hypertrophy Split"
-            defaultValue={initialData?.title ?? ''}
+            value={planTitle}
+            onChange={(e) => setPlanTitle(e.target.value)}
           />
         </label>
       </div>
