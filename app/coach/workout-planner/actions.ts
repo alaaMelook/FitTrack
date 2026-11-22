@@ -39,20 +39,22 @@ async function verifyAssignedClient(clientId: string, userId: string) {
 
 export async function saveWorkoutPlanAction(formData: FormData) {
   const session = await requireCoach()
-  const clientId = String(formData.get('clientId') ?? '')
+  const rawClientIds = formData.getAll('clientIds').map(String).filter(Boolean)
+  const singleClientId = String(formData.get('clientId') ?? '').trim()
+  const clientIds = rawClientIds.length > 0 ? Array.from(new Set(rawClientIds)) : (singleClientId ? [singleClientId] : [])
+
   const title = String(formData.get('title') ?? '').trim()
   const notes = String(formData.get('notes') ?? '').trim()
   const id = String(formData.get('id') ?? '').trim()
   const duration = String(formData.get('duration') ?? '1_month').trim()
 
-  if (!clientId || !title || title.length > 120) {
+  if (clientIds.length === 0 || !title || title.length > 120) {
     redirect('/coach/workout-planner?error=missing-fields')
   }
 
   let errorMsg: string | null = null
 
   try {
-    await verifyAssignedClient(clientId, session.id)
     const rawDays = parseWorkoutPayload(formData.get('items'))
 
     const scheduleWithDuration = (rawDays as any[]).map((d) => ({
@@ -61,28 +63,34 @@ export async function saveWorkoutPlanAction(formData: FormData) {
     }))
 
     const db: any = createAdminClient()
-    const values = {
-      client_id: clientId,
-      coach_user_id: session.id,
-      title,
-      notes: notes || null,
-      schedule: scheduleWithDuration,
-      updated_at: new Date().toISOString(),
+
+    for (const cId of clientIds) {
+      await verifyAssignedClient(cId, session.id)
+      const values = {
+        client_id: cId,
+        coach_user_id: session.id,
+        title,
+        notes: notes || null,
+        schedule: scheduleWithDuration,
+        updated_at: new Date().toISOString(),
+      }
+
+      if (id && cId === singleClientId) {
+        const result = await db.from('workout_plans').update(values).eq('id', id).eq('client_id', cId)
+        if (result.error) throw result.error
+      } else {
+        const result = await db.from('workout_plans').insert(values)
+        if (result.error) throw result.error
+      }
+
+      await logActivity({
+        actorUserId: session.id,
+        action: id && cId === singleClientId ? `Updated workout plan "${title}"` : `Assigned workout plan "${title}"`,
+        entityType: 'workout_plan',
+        entityId: id || undefined,
+        metadata: { title, clientId: cId },
+      })
     }
-
-    const result = id
-      ? await db.from('workout_plans').update(values).eq('id', id).eq('client_id', clientId)
-      : await db.from('workout_plans').insert(values)
-
-    if (result.error) throw result.error
-
-    await logActivity({
-      actorUserId: session.id,
-      action: id ? `Updated workout plan "${title}"` : `Created workout plan "${title}"`,
-      entityType: 'workout_plan',
-      entityId: id || undefined,
-      metadata: { title, clientId },
-    })
   } catch (error) {
     if (isRedirectError(error)) throw error
     const message = error instanceof Error ? error.message : 'Unable to save this plan.'

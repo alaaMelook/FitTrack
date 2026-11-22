@@ -35,27 +35,52 @@ export async function saveProgramAction(formData: FormData) {
   const session = await requireCoach()
   const kind = formData.get('kind')
   if (kind !== 'nutrition' && kind !== 'workout') redirect('/coach/programs?error=invalid-type')
-  const clientId = String(formData.get('clientId') ?? '')
+
+  const rawClientIds = formData.getAll('clientIds').map(String).filter(Boolean)
+  const singleClientId = String(formData.get('clientId') ?? '').trim()
+  const clientIds = rawClientIds.length > 0 ? Array.from(new Set(rawClientIds)) : (singleClientId ? [singleClientId] : [])
+
   const title = String(formData.get('title') ?? '').trim()
   const notes = String(formData.get('notes') ?? '').trim()
   const id = String(formData.get('id') ?? '').trim()
-  if (!clientId || !title || title.length > 120) redirect('/coach/programs?error=missing-fields')
+
+  if (clientIds.length === 0 || !title || title.length > 120) {
+    redirect('/coach/programs?error=missing-fields')
+  }
+
   try {
-    await verifyAssignedClient(clientId, session.id)
     const payload = parsePayload(formData.get('items'), kind)
     const db: any = createAdminClient()
-    const values = { client_id: clientId, coach_user_id: session.id, title, notes: notes || null, [kind === 'nutrition' ? 'meals' : 'schedule']: payload, updated_at: new Date().toISOString() }
-    const result = id ? await db.from(tables[kind]).update(values).eq('id', id).eq('client_id', clientId) : await db.from(tables[kind]).insert(values)
-    if (result.error) throw result.error
 
-    await logActivity({
-      actorUserId: session.id,
-      action: id ? `Updated ${kind} plan "${title}"` : `Created ${kind} plan "${title}"`,
-      entityType: kind === 'nutrition' ? 'nutrition_plan' : 'workout_plan',
-      entityId: id || undefined,
-      targetUserId: undefined,
-      metadata: { title, clientId },
-    })
+    for (const cId of clientIds) {
+      await verifyAssignedClient(cId, session.id)
+      const values = {
+        client_id: cId,
+        coach_user_id: session.id,
+        title,
+        notes: notes || null,
+        [kind === 'nutrition' ? 'meals' : 'schedule']: payload,
+        updated_at: new Date().toISOString(),
+      }
+
+      // If updating an existing plan for its original client, update; otherwise insert for selected client
+      if (id && cId === singleClientId) {
+        const result = await db.from(tables[kind]).update(values).eq('id', id).eq('client_id', cId)
+        if (result.error) throw result.error
+      } else {
+        const result = await db.from(tables[kind]).insert(values)
+        if (result.error) throw result.error
+      }
+
+      await logActivity({
+        actorUserId: session.id,
+        action: id && cId === singleClientId ? `Updated ${kind} plan "${title}"` : `Assigned ${kind} plan "${title}"`,
+        entityType: kind === 'nutrition' ? 'nutrition_plan' : 'workout_plan',
+        entityId: id || undefined,
+        targetUserId: undefined,
+        metadata: { title, clientId: cId },
+      })
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save this plan.'
     redirect(`/coach/programs?error=${encodeURIComponent(message)}`)

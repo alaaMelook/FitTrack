@@ -55,19 +55,29 @@ export default async function WorkoutPlannerPage({
   const clientIds = clientList.map((c: any) => c.id)
 
   // 3. Fetch workout plans + exercise library
-  const [{ data: workoutPlans }, { data: exerciseLibrary }] = await Promise.all([
-    clientIds.length > 0
-      ? db
-          .from('workout_plans')
-          .select('id, client_id, title, notes, schedule, updated_at, clients(users(full_name))')
-          .in('client_id', clientIds)
-          .order('updated_at', { ascending: false })
-      : Promise.resolve({ data: [] }),
+  const [{ data: rawWorkoutPlans }, { data: exerciseLibrary }] = await Promise.all([
+    db
+      .from('workout_plans')
+      .select('id, client_id, coach_user_id, title, notes, schedule, updated_at, clients(users(full_name))')
+      .order('updated_at', { ascending: false }),
     db
       .from('exercise_library')
       .select('id, name, muscle_group, description, video_url')
       .order('name', { ascending: true }),
   ])
+
+  // Filter plans visible to this coach:
+  // 1. Client is assigned to this coach
+  // 2. Coach is the creator (coach_user_id)
+  // 3. Admin explicitly granted access to this coach (in shared_coach_ids or metadata)
+  const workoutPlans = (rawWorkoutPlans ?? []).filter((plan: any) => {
+    if (clientIds.includes(plan.client_id)) return true
+    if (plan.coach_user_id === session.id) return true
+    if (Array.isArray(plan.shared_coach_ids) && plan.shared_coach_ids.includes(session.id)) return true
+    const shared = plan.schedule?.[0]?.sharedCoachIds
+    if (Array.isArray(shared) && shared.includes(session.id)) return true
+    return false
+  })
 
   return (
     <WorkoutPlannerClient

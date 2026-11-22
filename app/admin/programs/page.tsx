@@ -121,23 +121,29 @@ export default async function AdminProgramsPage({
     { data: nutritionPlans },
     { data: workoutPlans },
     { data: exercises },
+    { data: coaches },
   ] = await Promise.all([
     db
       .from('nutrition_plans')
       .select(
-        'id,title,notes,meals,updated_at,clients(users(full_name)),coach:coach_user_id(full_name)',
+        'id,client_id,coach_user_id,title,notes,meals,updated_at,clients(users(full_name)),coach:coach_user_id(full_name,email)',
       )
       .order('updated_at', { ascending: false }),
     db
       .from('workout_plans')
       .select(
-        'id,title,notes,schedule,updated_at,clients(users(full_name)),coach:coach_user_id(full_name)',
+        'id,client_id,coach_user_id,title,notes,schedule,updated_at,clients(users(full_name)),coach:coach_user_id(full_name,email)',
       )
       .order('updated_at', { ascending: false }),
     db
       .from('exercise_library')
       .select('id,name,muscle_group,description,video_url')
       .order('name', { ascending: true }),
+    db
+      .from('users')
+      .select('id,full_name,email')
+      .eq('role', 'coach')
+      .order('full_name', { ascending: true }),
   ])
 
   /* ── inline edit target ── */
@@ -192,9 +198,16 @@ export default async function AdminProgramsPage({
               {(nutritionPlans as any[]).map((plan) => {
                 const clientName = (plan.clients as any)?.users?.full_name ?? '—'
                 const coachName = (plan.coach as any)?.full_name ?? (plan.coaches as any)?.users?.full_name ?? '—'
+                const primaryCoachId = plan.coach_user_id
                 const mealCount = Array.isArray(plan.meals) ? plan.meals.length : 0
                 const kcal = totalCalories(plan.meals)
                 const isEditing = editId === plan.id
+                const sharedCoachIds: string[] = (
+                  (plan as any).shared_coach_ids ||
+                  plan.meals?.[0]?.sharedCoachIds ||
+                  []
+                )
+                const allowedCoaches = (coaches ?? []).filter((c: any) => sharedCoachIds.includes(c.id) || c.id === primaryCoachId)
 
                 return (
                   <article className="card" key={plan.id}>
@@ -238,13 +251,16 @@ export default async function AdminProgramsPage({
                     </div>
 
                     {/* ── meta row ── */}
-                    <p className="text-secondary text-sm" style={{ marginTop: '0.4rem' }}>
-                      Client: <strong>{clientName}</strong> &nbsp;·&nbsp; Coach:{' '}
-                      <strong>{coachName}</strong> &nbsp;·&nbsp; Updated{' '}
-                      {new Date(plan.updated_at).toLocaleDateString()} &nbsp;·&nbsp;{' '}
+                    <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 'var(--text-xs)' }}>
+                      <span className="text-secondary">Client: <strong>{clientName}</strong></span>
+                      <span>·</span>
+                      <span className="text-secondary">Primary Coach: <strong>{coachName}</strong></span>
+                      <span>·</span>
+                      <span className="text-secondary">Updated {new Date(plan.updated_at).toLocaleDateString()}</span>
+                      <span>·</span>
                       <span className="badge badge-brand" style={{ fontSize: '0.7rem' }}>
                         {mealCount} meal{mealCount !== 1 ? 's' : ''}
-                      </span>{' '}
+                      </span>
                       {kcal > 0 && (
                         <span
                           className="badge"
@@ -257,7 +273,33 @@ export default async function AdminProgramsPage({
                           {kcal} kcal
                         </span>
                       )}
-                    </p>
+                    </div>
+
+                    {/* ── Allowed Coaches Badges ── */}
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Visible to Coaches:</span>
+                      {allowedCoaches.length === 0 ? (
+                        <span className="badge" style={{ fontSize: '11px', background: '#f1f5f9', color: '#64748b' }}>
+                          Primary Coach Only ({coachName})
+                        </span>
+                      ) : (
+                        allowedCoaches.map((c: any) => (
+                          <span
+                            key={c.id}
+                            className="badge"
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              background: c.id === primaryCoachId ? '#ede9fe' : '#f0fdf4',
+                              color: c.id === primaryCoachId ? '#6d28d9' : '#15803d',
+                              border: `1px solid ${c.id === primaryCoachId ? '#ddd6fe' : '#bbf7d0'}`,
+                            }}
+                          >
+                            {c.full_name || c.email} {c.id === primaryCoachId ? '(Primary)' : ''}
+                          </span>
+                        ))
+                      )}
+                    </div>
 
                     {/* ── inline edit form ── */}
                     {isEditing && (
@@ -343,8 +385,15 @@ export default async function AdminProgramsPage({
               {(workoutPlans as any[]).map((plan) => {
                 const clientName = (plan.clients as any)?.users?.full_name ?? '—'
                 const coachName = (plan.coach as any)?.full_name ?? (plan.coaches as any)?.users?.full_name ?? '—'
+                const primaryCoachId = plan.coach_user_id
                 const days = countWorkoutDays(plan.schedule)
                 const isEditing = editId === plan.id
+                const sharedCoachIds: string[] = (
+                  (plan as any).shared_coach_ids ||
+                  plan.schedule?.[0]?.sharedCoachIds ||
+                  []
+                )
+                const allowedCoaches = (coaches ?? []).filter((c: any) => sharedCoachIds.includes(c.id) || c.id === primaryCoachId)
 
                 return (
                   <article className="card" key={plan.id}>
@@ -389,10 +438,13 @@ export default async function AdminProgramsPage({
                     </div>
 
                     {/* ── meta row ── */}
-                    <p className="text-secondary text-sm" style={{ marginTop: '0.4rem' }}>
-                      Client: <strong>{clientName}</strong> &nbsp;·&nbsp; Coach:{' '}
-                      <strong>{coachName}</strong> &nbsp;·&nbsp; Updated{' '}
-                      {new Date(plan.updated_at).toLocaleDateString()} &nbsp;·&nbsp;{' '}
+                    <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 'var(--text-xs)' }}>
+                      <span className="text-secondary">Client: <strong>{clientName}</strong></span>
+                      <span>·</span>
+                      <span className="text-secondary">Primary Coach: <strong>{coachName}</strong></span>
+                      <span>·</span>
+                      <span className="text-secondary">Updated {new Date(plan.updated_at).toLocaleDateString()}</span>
+                      <span>·</span>
                       <span
                         className="badge"
                         style={{
@@ -402,7 +454,7 @@ export default async function AdminProgramsPage({
                         }}
                       >
                         {days.total} day{days.total !== 1 ? 's' : ''}
-                      </span>{' '}
+                      </span>
                       {days.total > 0 && (
                         <>
                           <span
@@ -410,7 +462,7 @@ export default async function AdminProgramsPage({
                             style={{ fontSize: '0.7rem', background: 'var(--cream-300)', color: 'var(--text-primary)' }}
                           >
                             {days.workout} workout
-                          </span>{' '}
+                          </span>
                           <span
                             className="badge badge-neutral"
                             style={{ fontSize: '0.7rem' }}
@@ -419,7 +471,33 @@ export default async function AdminProgramsPage({
                           </span>
                         </>
                       )}
-                    </p>
+                    </div>
+
+                    {/* ── Allowed Coaches Badges ── */}
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Visible to Coaches:</span>
+                      {allowedCoaches.length === 0 ? (
+                        <span className="badge" style={{ fontSize: '11px', background: '#f1f5f9', color: '#64748b' }}>
+                          Primary Coach Only ({coachName})
+                        </span>
+                      ) : (
+                        allowedCoaches.map((c: any) => (
+                          <span
+                            key={c.id}
+                            className="badge"
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              background: c.id === primaryCoachId ? '#ede9fe' : '#f0fdf4',
+                              color: c.id === primaryCoachId ? '#6d28d9' : '#15803d',
+                              border: `1px solid ${c.id === primaryCoachId ? '#ddd6fe' : '#bbf7d0'}`,
+                            }}
+                          >
+                            {c.full_name || c.email} {c.id === primaryCoachId ? '(Primary)' : ''}
+                          </span>
+                        ))
+                      )}
+                    </div>
 
                     {/* ── structured schedule viewer ── */}
                     {!isEditing && Array.isArray(plan.schedule) && plan.schedule.length > 0 && (
@@ -474,6 +552,74 @@ export default async function AdminProgramsPage({
                         }}
                       >
                         <input type="hidden" name="id" value={plan.id} />
+
+                        {/* ── Coach Visibility Controls ── */}
+                        <div style={{ background: '#ffffff', padding: '16px', borderRadius: '12px', border: '1.5px solid #cbd5e1' }}>
+                          <div style={{ marginBottom: 12 }}>
+                            <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block', marginBottom: 2 }}>
+                              👥 Coach Visibility & Access (صلاحية وصول الكباتن)
+                            </strong>
+                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                              اختر الكباتن المصرح لهم برؤية واستخدام هذه الخطة. الكابتن غير المحدد لن تظهر له الخطة نهائياً.
+                            </p>
+                          </div>
+
+                          <div style={{ marginBottom: 14 }}>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                              Primary Assigned Coach / الكابتن الأساسي
+                            </label>
+                            <select
+                              name="coach_user_id"
+                              defaultValue={primaryCoachId ?? ''}
+                              style={{ width: '100%', maxWidth: 360, padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 600 }}
+                            >
+                              <option value="">-- Choose Coach --</option>
+                              {(coaches ?? []).map((c: any) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.full_name || 'Coach'} ({c.email})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                              Allow Specific Coaches / تحديد الكباتن المسموح لهم بالرؤية:
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8 }}>
+                              {(coaches ?? []).map((c: any) => {
+                                const isChecked = sharedCoachIds.includes(c.id) || primaryCoachId === c.id
+                                return (
+                                  <label
+                                    key={c.id}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 10,
+                                      padding: '8px 12px',
+                                      borderRadius: '8px',
+                                      border: '1.5px solid #cbd5e1',
+                                      background: '#f8fafc',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      name="shared_coach_ids"
+                                      value={c.id}
+                                      defaultChecked={isChecked}
+                                      style={{ width: 16, height: 16, accentColor: 'var(--brand-600)' }}
+                                    />
+                                    <div>
+                                      <strong style={{ fontSize: '13px', display: 'block', color: '#0f172a' }}>{c.full_name || 'Coach'}</strong>
+                                      <span style={{ fontSize: '11px', color: '#64748b' }}>{c.email}</span>
+                                    </div>
+                                  </label>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        </div>
 
                         <div className="form-group">
                           <label htmlFor={`workout-title-${plan.id}`}>Title</label>

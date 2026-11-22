@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Moon,
-  Check
+  Check,
+  Users
 } from 'lucide-react'
 
 export type ExerciseItem = {
@@ -47,7 +48,7 @@ export type ExerciseOption = {
   video_url?: string | null
 }
 
-type Client = { id: string; name: string }
+type Client = { id: string; name: string; email?: string }
 
 const DEFAULT_DAYS = [
   { day: 'Day 1', workout: 'Chest & Triceps', restDay: false },
@@ -111,11 +112,11 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
     return firstDay?.planDuration || '1_month'
   })
 
-  // Controlled state for clientId and title to avoid false/0 defaults
-  const [selectedClientId, setSelectedClientId] = useState<string>(() => {
-    if (initialData?.clientId) return initialData.clientId
-    if (clients.length === 1) return clients[0].id
-    return ''
+  // Target Client(s) selection (support assigning to one or multiple clients)
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>(() => {
+    if (initialData?.clientId) return [initialData.clientId]
+    if (clients.length === 1) return [clients[0].id]
+    return []
   })
   const [planTitle, setPlanTitle] = useState<string>(initialData?.title ?? '')
 
@@ -278,6 +279,11 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
     e.preventDefault()
     setError(null)
 
+    if (selectedClientIds.length === 0) {
+      setError('Please select at least one client to assign this workout plan to (يرجى اختيار عميل واحد على الأقل).')
+      return
+    }
+
     if (schedule.length === 0) {
       setError('Please add at least one day to the schedule.')
       return
@@ -295,6 +301,13 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
     }
 
     const fd = new FormData(e.currentTarget)
+
+    // Append all selected clients
+    fd.delete('clientIds')
+    for (const cid of selectedClientIds) {
+      fd.append('clientIds', cid)
+    }
+    fd.set('clientId', selectedClientIds[0] || '')
     // Tag each day with planDuration so it persists cleanly in JSONB
     const scheduleWithDuration = schedule.map((d) => ({
       ...d,
@@ -330,35 +343,103 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
         </div>
       )}
 
-      {/* Basic Info: Client, Title, Notes */}
-      <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
-        <label className="form-group">
-          <span>Target Client *</span>
-          <select
-            name="clientId"
-            required
-            value={selectedClientId}
-            onChange={(e) => setSelectedClientId(e.target.value)}
-          >
-            <option value="" disabled>Select a client…</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </label>
+      {/* ── 1. Target Clients (Multi-Select / Assign to Multiple Clients) ── */}
+      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1.5px solid #cbd5e1', padding: '14px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <span style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Users size={16} style={{ color: 'var(--brand-600)' }} />
+              Target Clients / تعيين الخطة للعملاء * ({selectedClientIds.length} Selected)
+            </span>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              اختر عميل واحد أو عدة عملاء ليتم تطبيق هذا الجدول التدريبي عليهم مباشرة
+            </span>
+          </div>
 
-        <label className="form-group">
-          <span>Workout Plan Title *</span>
-          <input
-            name="title"
-            required
-            maxLength={120}
-            placeholder="e.g. 5-Day Push / Pull / Legs Hypertrophy Split"
-            value={planTitle}
-            onChange={(e) => setPlanTitle(e.target.value)}
-          />
-        </label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => setSelectedClientIds(clients.map((c) => c.id))}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '3px 8px' }}
+            >
+              Select All (تحديد الكل)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedClientIds([])}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '3px 8px', color: '#64748b' }}
+            >
+              Clear (إلغاء التحديد)
+            </button>
+          </div>
+        </div>
+
+        {clients.length === 0 ? (
+          <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>No assigned clients found.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+            {clients.map((c) => {
+              const isChecked = selectedClientIds.includes(c.id)
+              return (
+                <label
+                  key={c.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: isChecked ? '1.5px solid var(--brand-600)' : '1px solid #e2e8f0',
+                    background: isChecked ? 'var(--brand-50, #fcfaff)' : '#f8fafc',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    name="clientIds"
+                    value={c.id}
+                    checked={isChecked}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedClientIds((prev) => [...prev, c.id])
+                      } else {
+                        setSelectedClientIds((prev) => prev.filter((id) => id !== c.id))
+                      }
+                    }}
+                    style={{ width: 16, height: 16, accentColor: 'var(--brand-600)' }}
+                  />
+                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                    <strong style={{ fontSize: '13px', display: 'block', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {c.name}
+                    </strong>
+                    {c.email && (
+                      <span style={{ fontSize: '11px', color: '#64748b', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {c.email}
+                      </span>
+                    )}
+                  </div>
+                </label>
+              )
+            })}
+          </div>
+        )}
       </div>
+
+      <label className="form-group" style={{ marginBottom: 0 }}>
+        <span style={{ fontWeight: 700, color: '#0f172a' }}>Workout Plan Title / عنوان خطة التمرين *</span>
+        <input
+          name="title"
+          required
+          maxLength={120}
+          placeholder="e.g. 5-Day Push / Pull / Legs Hypertrophy Split"
+          value={planTitle}
+          onChange={(e) => setPlanTitle(e.target.value)}
+          style={{ fontWeight: 600 }}
+        />
+      </label>
 
       <label className="form-group">
         <span>Overall Plan Notes / Recommendations</span>

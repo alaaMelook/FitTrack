@@ -26,22 +26,57 @@ export async function adminUpdateNutritionPlan(formData: FormData) {
   const title = formData.get('title') as string
   const notes = formData.get('notes') as string
   const mealsRaw = formData.get('meals') as string
+  const coachUserId = (formData.get('coach_user_id') as string)?.trim() || null
+  const sharedCoachIds = formData.getAll('shared_coach_ids').map((v) => String(v).trim()).filter(Boolean)
 
-  let meals: unknown
+  let meals: any
   try {
     meals = JSON.parse(mealsRaw)
   } catch {
     redirect(`/admin/programs?tab=nutrition&error=invalid_json`)
   }
 
-  const { error } = await db
-    .from('nutrition_plans')
-    .update({ title, notes, meals, updated_at: new Date().toISOString() })
-    .eq('id', id)
+  // Tag sharedCoachIds in meals JSONB for guaranteed availability
+  if (Array.isArray(meals) && meals.length > 0) {
+    meals[0] = {
+      ...meals[0],
+      sharedCoachIds,
+    }
+  }
 
-  if (error) throw new Error(error.message)
+  const updatePayload: Record<string, any> = {
+    title,
+    notes,
+    meals,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (coachUserId) {
+    updatePayload.coach_user_id = coachUserId
+  }
+
+  // Try updating with shared_coach_ids column, fallback gracefully if column is not yet migrated
+  try {
+    const { error } = await db
+      .from('nutrition_plans')
+      .update({ ...updatePayload, shared_coach_ids: sharedCoachIds })
+      .eq('id', id)
+
+    if (error && (error.code === '42703' || error.message?.includes('shared_coach_ids'))) {
+      const { error: fallbackError } = await db.from('nutrition_plans').update(updatePayload).eq('id', id)
+      if (fallbackError) throw new Error(fallbackError.message)
+    } else if (error) {
+      throw new Error(error.message)
+    }
+  } catch (err: any) {
+    if (err?.digest?.includes('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') throw err
+    const { error: fallbackError } = await db.from('nutrition_plans').update(updatePayload).eq('id', id)
+    if (fallbackError) throw new Error(fallbackError.message)
+  }
 
   revalidatePath('/admin/programs')
+  revalidatePath('/coach/programs')
+  revalidatePath('/coach/workout-planner')
   redirect('/admin/programs?tab=nutrition&saved=1')
 }
 
@@ -66,22 +101,57 @@ export async function adminUpdateWorkoutPlan(formData: FormData) {
   const title = formData.get('title') as string
   const notes = formData.get('notes') as string
   const scheduleRaw = formData.get('schedule') as string
+  const coachUserId = (formData.get('coach_user_id') as string)?.trim() || null
+  const sharedCoachIds = formData.getAll('shared_coach_ids').map((v) => String(v).trim()).filter(Boolean)
 
-  let schedule: unknown
+  let schedule: any
   try {
     schedule = JSON.parse(scheduleRaw)
   } catch {
     redirect(`/admin/programs?tab=workout&error=invalid_json`)
   }
 
-  const { error } = await db
-    .from('workout_plans')
-    .update({ title, notes, schedule, updated_at: new Date().toISOString() })
-    .eq('id', id)
+  // Tag sharedCoachIds in schedule JSONB for guaranteed availability
+  if (Array.isArray(schedule) && schedule.length > 0) {
+    schedule[0] = {
+      ...schedule[0],
+      sharedCoachIds,
+    }
+  }
 
-  if (error) throw new Error(error.message)
+  const updatePayload: Record<string, any> = {
+    title,
+    notes,
+    schedule,
+    updated_at: new Date().toISOString(),
+  }
+
+  if (coachUserId) {
+    updatePayload.coach_user_id = coachUserId
+  }
+
+  // Try updating with shared_coach_ids column, fallback gracefully if column is not yet migrated
+  try {
+    const { error } = await db
+      .from('workout_plans')
+      .update({ ...updatePayload, shared_coach_ids: sharedCoachIds })
+      .eq('id', id)
+
+    if (error && (error.code === '42703' || error.message?.includes('shared_coach_ids'))) {
+      const { error: fallbackError } = await db.from('workout_plans').update(updatePayload).eq('id', id)
+      if (fallbackError) throw new Error(fallbackError.message)
+    } else if (error) {
+      throw new Error(error.message)
+    }
+  } catch (err: any) {
+    if (err?.digest?.includes('NEXT_REDIRECT') || err?.message === 'NEXT_REDIRECT') throw err
+    const { error: fallbackError } = await db.from('workout_plans').update(updatePayload).eq('id', id)
+    if (fallbackError) throw new Error(fallbackError.message)
+  }
 
   revalidatePath('/admin/programs')
+  revalidatePath('/coach/programs')
+  revalidatePath('/coach/workout-planner')
   redirect('/admin/programs?tab=workout&saved=1')
 }
 
