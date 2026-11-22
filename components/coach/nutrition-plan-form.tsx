@@ -42,12 +42,12 @@ type Props = {
 }
 
 const DURATION_OPTIONS = [
-  { id: 'daily', label: 'Daily Routine / نظام يومي معتاد' },
-  { id: '1_week', label: '1 Week / أسبوع واحد' },
-  { id: '2_weeks', label: '2 Weeks / أسبوعين' },
-  { id: '1_month', label: '1 Month (4 Weeks) / شهر' },
-  { id: '2_months', label: '2 Months (8 Weeks) / شهرين' },
-  { id: 'ongoing', label: 'Custom / Ongoing / مستمر' },
+  { id: 'daily', label: 'Daily Routine' },
+  { id: '1_week', label: '1 Week' },
+  { id: '2_weeks', label: '2 Weeks' },
+  { id: '1_month', label: '1 Month (4 Weeks)' },
+  { id: '2_months', label: '2 Months (8 Weeks)' },
+  { id: 'ongoing', label: 'Custom / Ongoing' },
 ]
 
 export default function NutritionPlanForm({ clients, existingPlans = [], initialData }: Props) {
@@ -202,6 +202,9 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
       try {
         await saveProgramAction(fd)
       } catch (err: any) {
+        if (err?.message === 'NEXT_REDIRECT' || err?.digest?.includes('NEXT_REDIRECT')) {
+          return
+        }
         setError(err?.message ?? 'Failed to save nutrition plan.')
       }
     })
@@ -237,10 +240,10 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
             <Copy size={18} style={{ color: 'var(--brand-600)' }} />
             <div>
               <strong style={{ fontSize: 'var(--text-sm)', color: '#0f172a' }}>
-                تطبيق من خطة سابقة أو قالب محفوظ (Apply from Saved Plan)
+                Apply from Saved Plan / Template
               </strong>
               <div style={{ fontSize: '12px', color: '#475569' }}>
-                يمكنك نسخ وجبات وأطعمة أي خطة سابقة وتطبيقها بنقرة واحدة على العميل الحالي
+                Copy meal structures and foods from any previously created plan
               </div>
             </div>
           </div>
@@ -262,7 +265,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                 color: '#0f172a',
               }}
             >
-              <option value="">-- اختر خطة سابقة للنسخ منها --</option>
+              <option value="">-- Choose saved template to copy --</option>
               {existingPlans.map((plan: any) => (
                 <option key={plan.id} value={plan.id}>
                   {plan.title} ({plan.clients?.users?.full_name || 'Client'})
@@ -276,7 +279,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
       {/* Basic Info: Client, Title */}
       <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
         <label className="form-group">
-          <span style={{ fontWeight: 600, color: '#0f172a' }}>Client (العميل) *</span>
+          <span style={{ fontWeight: 600, color: '#0f172a' }}>Target Client *</span>
           <select name="clientId" required defaultValue={initialData?.clientId ?? ''} style={{ fontWeight: 600 }}>
             <option value="" disabled>Select a client…</option>
             {clients.map((c) => (
@@ -286,7 +289,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
         </label>
 
         <label className="form-group">
-          <span style={{ fontWeight: 600, color: '#0f172a' }}>Plan Title (اسم الخطة) *</span>
+          <span style={{ fontWeight: 600, color: '#0f172a' }}>Nutrition Plan Title *</span>
           <input
             name="title"
             required
@@ -298,13 +301,13 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
         </label>
       </div>
 
-      {/* Plan Duration / Timeframe (مدة الخطة والوجبات) */}
+      {/* Plan Duration / Timeframe */}
       <div>
         <label style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
           <Clock size={16} style={{ color: 'var(--brand-600)' }} />
-          <span>Plan Timeframe / مدة صلاحية الخطة *</span>
+          <span>Plan Timeframe / Duration *</span>
           <span style={{ fontSize: '12px', fontWeight: 400, color: '#64748b' }}>
-            (حدد الفترة الزمنية التي يستمر عليها العميل بهذه الوجبات)
+            (Timeframe client adheres to this meal schedule)
           </span>
         </label>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -336,7 +339,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
 
       {/* General Notes */}
       <label className="form-group">
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>General Instructions & Water Intake (تعليمات عامة وتوصيات الماء)</span>
+        <span style={{ fontWeight: 600, color: '#0f172a' }}>General Instructions & Hydration Guidelines</span>
         <textarea
           name="notes"
           rows={2}
@@ -345,7 +348,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
         />
       </label>
 
-      {/* ── Optional Restricted Foods (قائمة الممنوعات لكل عميل) ── */}
+      {/* ── Optional Restricted Foods ── */}
       <div
         style={{
           background: '#fffbeb',
@@ -356,16 +359,16 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
       >
         <label style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: '#92400e', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
           <AlertTriangle size={16} style={{ color: '#d97706' }} />
-          <span>قائمة الممنوعات (Restricted & Forbidden Foods) — اختياري</span>
+          <span>Restricted Foods & Dietary Limitations (Optional)</span>
         </label>
         <p style={{ fontSize: '12px', color: '#78350f', margin: '0 0 8px 0' }}>
-          يمكنك تحديد أي أطعمة ممنوعة أو مسببات حساسية لهذا العميل بالتحديد (مثل: السكر الأبيض، المقليات، المعجنات، المياه الغازية، مشتقات الحليب، إلخ).
+          Specify any forbidden foods, allergies, or restrictions for this client (e.g. No refined sugars, no dairy, gluten-free, no fried foods).
         </p>
         <textarea
           value={restrictedFoods}
           onChange={(e) => setRestrictedFoods(e.target.value)}
           rows={2}
-          placeholder="اكتب الممنوعات هنا (اختياري)... مثلاً: ممنوع السكريات والحلويات، الوجبات السريعة، المقليات، المشروبات الغازية..."
+          placeholder="e.g. No white sugar, avoid fast food and sodas, lactose intolerant..."
           style={{
             width: '100%',
             padding: '8px 12px',
@@ -383,10 +386,10 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
         <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-              Daily Meals ({meals.length} وجبات)
+              Daily Meals ({meals.length} {meals.length === 1 ? 'Meal' : 'Meals'})
             </h3>
             <span className="badge badge-brand" style={{ fontSize: '11px' }}>
-              Duration: {DURATION_OPTIONS.find((d) => d.id === duration)?.label.split('/')[0].trim()}
+              Duration: {DURATION_OPTIONS.find((d) => d.id === duration)?.label}
             </span>
           </div>
           <button
@@ -402,7 +405,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
               background: 'rgba(140, 86, 212, 0.08)',
             }}
           >
-            <Plus size={14} /> Add Meal (إضافة وجبة)
+            <Plus size={14} /> Add Meal
           </button>
         </div>
 
@@ -449,7 +452,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
               <div className="grid grid-2" style={{ gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                 <label className="form-group" style={{ marginBottom: 0 }}>
                   <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>
-                    Meal Name (اسم الوجبة) *
+                    Meal Name *
                   </span>
                   <input
                     value={meal.meal}
@@ -461,7 +464,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                 </label>
                 <label className="form-group" style={{ marginBottom: 0 }}>
                   <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>
-                    Timing or Meal Notes (توقيت الوجبة أو ملاحظة)
+                    Timing or Meal Notes (Optional)
                   </span>
                   <input
                     value={meal.notes}
@@ -475,7 +478,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
               <div style={{ marginTop: 12 }}>
                 <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
                   <span style={{ fontWeight: 700, fontSize: '13px', color: '#334155' }}>
-                    Food Items ({meal.foods.length} أصناف)
+                    Food Items ({meal.foods.length} {meal.foods.length === 1 ? 'item' : 'items'})
                   </span>
                   <button
                     type="button"
@@ -515,7 +518,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                         )}
                       </div>
 
-                      {/* Row 1: Food Name + Single Portion Field (5 معالق / 100g / 2 بيضة) */}
+                      {/* Row 1: Food Name + Single Portion Field */}
                       <div
                         style={{
                           display: 'grid',
@@ -526,12 +529,12 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                       >
                         <label className="form-group" style={{ marginBottom: 0 }}>
                           <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                            Food Name (اسم الصنف) *
+                            Food Name *
                           </span>
                           <input
                             value={food.name}
                             onChange={(e) => updateFood(mealIdx, foodIdx, 'name', e.target.value)}
-                            placeholder="e.g. شوفان، صدور دجاج، أرز أبيض، بيض مسلوق"
+                            placeholder="e.g. Oatmeal, Chicken Breast, White Rice, Boiled Eggs"
                             style={{ fontWeight: 600 }}
                           />
                         </label>
@@ -539,13 +542,13 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                         {/* SINGLE PORTION FIELD (Qty & Unit merged as text) */}
                         <label className="form-group" style={{ marginBottom: 0 }}>
                           <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                            Portion / المقدار والكمية *
+                            Portion / Quantity *
                           </span>
                           <input
                             type="text"
                             value={food.portion}
                             onChange={(e) => updateFood(mealIdx, foodIdx, 'portion', e.target.value)}
-                            placeholder="e.g. 5 معالق، 100g، 2 بيضة، نصف رغيف"
+                            placeholder="e.g. 4 spoons, 100g, 2 whole eggs, 1 cup"
                             style={{ fontWeight: 600 }}
                           />
                         </label>

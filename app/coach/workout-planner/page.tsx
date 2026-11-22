@@ -38,11 +38,18 @@ export default async function WorkoutPlannerPage({
     : { data: [] }
 
   const clientList = (assignments ?? [])
-    .map((a: any) => ({
-      id: a.clients?.id,
-      name: a.clients?.users?.full_name || 'Client',
-      email: a.clients?.users?.email || '',
-    }))
+    .map((a: any) => {
+      const rawName = a.clients?.users?.full_name?.trim()
+      const email = a.clients?.users?.email || ''
+      const name = (!rawName || rawName === 'false' || rawName === 'null')
+        ? (email ? email.split('@')[0] : 'Client')
+        : rawName
+      return {
+        id: a.clients?.id,
+        name,
+        email,
+      }
+    })
     .filter((c: any) => Boolean(c.id))
 
   const clientIds = clientList.map((c: any) => c.id)

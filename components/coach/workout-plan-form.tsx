@@ -309,6 +309,9 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
         const actionToRun = saveAction ?? saveProgramAction
         await actionToRun(fd)
       } catch (err: any) {
+        if (err?.message === 'NEXT_REDIRECT' || err?.digest?.includes('NEXT_REDIRECT')) {
+          return
+        }
         setError(err?.message ?? 'Failed to save workout plan.')
       }
     })

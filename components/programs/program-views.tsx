@@ -54,30 +54,47 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
           { calories: 0, protein: 0, carbs: 0, fats: 0 }
         )
 
+        const hasMacroTargets = totals.calories > 0 || totals.protein > 0 || totals.carbs > 0 || totals.fats > 0
+
         return (
-          <article className="card" key={plan.id} style={{ padding: 'var(--space-6)' }}>
+          <article className="card" key={plan.id} style={{ padding: '24px', borderRadius: '16px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             {/* Plan Header */}
-            <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12, marginBottom: '1rem' }}>
+            <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12, marginBottom: '1.25rem' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span className="badge badge-brand">Nutrition Plan</span>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      padding: '3px 10px',
+                      borderRadius: '6px',
+                      background: 'linear-gradient(135deg, #16a34a, #059669)',
+                      color: '#ffffff',
+                    }}
+                  >
+                    Nutrition Plan
+                  </span>
                   {meals[0]?.planDuration && (
                     <span
-                      className="badge"
                       style={{
                         fontSize: '11px',
-                        background: 'rgba(22, 163, 74, 0.12)',
-                        color: '#16a34a',
-                        fontWeight: 600,
+                        fontWeight: 700,
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        background: 'rgba(22, 163, 74, 0.1)',
+                        color: '#15803d',
+                        border: '1px solid rgba(22, 163, 74, 0.2)',
                       }}
                     >
                       Duration:{' '}
                       {meals[0].planDuration === 'daily'
                         ? 'Daily Routine'
                         : meals[0].planDuration === '1_week'
-                        ? '1 Week'
+                        ? '1 Week Split'
                         : meals[0].planDuration === '2_weeks'
-                        ? '2 Weeks'
+                        ? '2 Weeks Split'
                         : meals[0].planDuration === '1_month'
                         ? '1 Month (4 Weeks)'
                         : meals[0].planDuration === '2_months'
@@ -86,12 +103,17 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                     </span>
                   )}
                 </div>
-                <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 800 }}>{plan.title}</h2>
-                {plan.updated_at && (
-                  <p className="text-secondary text-xs" style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                    <Calendar size={12} /> Last updated: {new Date(plan.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
-                )}
+                <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>{plan.title}</h2>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', fontSize: '13px', color: '#64748b' }}>
+                  {plan.updated_at && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Calendar size={13} /> Updated {new Date(plan.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  )}
+                  <span style={{ fontWeight: 600, color: '#334155' }}>
+                    {meals.length} {meals.length === 1 ? 'Meal Routine' : 'Meals Routine'}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -101,16 +123,16 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                 style={{
                   background: '#fffbeb',
                   border: '1.5px solid #fde68a',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '12px 16px',
-                  marginBottom: '1.25rem',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  marginBottom: '1.5rem',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#92400e', fontWeight: 700, fontSize: 'var(--text-sm)' }}>
-                  <span style={{ fontSize: '16px' }}>⚠️</span>
-                  <span>قائمة الممنوعات (Restricted & Forbidden Foods):</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#92400e', fontWeight: 800, fontSize: '14px', marginBottom: 4 }}>
+                  <span>⚠️</span>
+                  <span>Restricted Foods & Guidelines / قائمة الممنوعات:</span>
                 </div>
-                <p style={{ margin: '4px 0 0 0', fontSize: 'var(--text-sm)', color: '#78350f', fontWeight: 600 }}>
+                <p style={{ margin: 0, fontSize: '13.5px', color: '#78350f', fontWeight: 600, lineHeight: 1.5 }}>
                   {meals[0].restrictedFoods}
                 </p>
               </div>
@@ -119,68 +141,81 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
             {plan.notes && (
               <div
                 style={{
-                  background: 'var(--cream-300)',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  borderLeft: '4px solid var(--brand-600)',
+                  background: '#f8fafc',
+                  padding: '14px 18px',
+                  borderRadius: '12px',
+                  borderLeft: '4px solid #16a34a',
                   marginBottom: '1.5rem',
-                  fontSize: 'var(--text-sm)',
+                  fontSize: '13.5px',
+                  color: '#334155',
+                  lineHeight: 1.5,
                 }}
               >
-                <strong style={{ display: 'block', color: 'var(--brand-700)', marginBottom: 2 }}>Coach Note:</strong>
+                <strong style={{ display: 'block', color: '#15803d', marginBottom: 2 }}>Coach Note:</strong>
                 {plan.notes}
               </div>
             )}
 
-            {/* Daily Macro Targets Card Row */}
-            <div className="stat-grid-4" style={{ marginBottom: '1.75rem' }}>
-              <div className="stat-card">
-                <div className="stat-icon" style={{ background: 'rgba(217, 119, 6, 0.1)', color: '#d97706' }}>
-                  <Flame size={20} />
+            {/* Daily Macro Targets — Only displayed if macro targets are specified */}
+            {hasMacroTargets && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: '1.75rem' }}>
+                <div style={{ background: '#fffbeb', padding: '14px 16px', borderRadius: '12px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(217, 119, 6, 0.15)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Flame size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#92400e' }}>
+                      {totals.calories.toFixed(0)} <span style={{ fontSize: '12px', fontWeight: 600 }}>kcal</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 700 }}>DAILY CALORIES</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="stat-value">{totals.calories.toFixed(0)} <span style={{ fontSize: '13px', fontWeight: 500 }}>kcal</span></div>
-                  <div className="stat-label">Daily Calories</div>
-                </div>
-              </div>
 
-              <div className="stat-card">
-                <div className="stat-icon" style={{ background: 'rgba(220, 38, 38, 0.1)', color: '#dc2626' }}>
-                  <Salad size={20} />
+                <div style={{ background: '#fef2f2', padding: '14px 16px', borderRadius: '12px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(220, 38, 38, 0.15)', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Salad size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#991b1b' }}>
+                      {totals.protein.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 600 }}>g</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#b91c1c', fontWeight: 700 }}>PROTEIN</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="stat-value">{totals.protein.toFixed(1)} <span style={{ fontSize: '13px', fontWeight: 500 }}>g</span></div>
-                  <div className="stat-label">Protein</div>
-                </div>
-              </div>
 
-              <div className="stat-card">
-                <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                  <Salad size={20} />
+                <div style={{ background: '#eff6ff', padding: '14px 16px', borderRadius: '12px', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Salad size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e40af' }}>
+                      {totals.carbs.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 600 }}>g</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 700 }}>CARBOHYDRATES</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="stat-value">{totals.carbs.toFixed(1)} <span style={{ fontSize: '13px', fontWeight: 500 }}>g</span></div>
-                  <div className="stat-label">Carbohydrates</div>
-                </div>
-              </div>
 
-              <div className="stat-card">
-                <div className="stat-icon" style={{ background: 'rgba(22, 163, 74, 0.1)', color: '#16a34a' }}>
-                  <Salad size={20} />
-                </div>
-                <div>
-                  <div className="stat-value">{totals.fats.toFixed(1)} <span style={{ fontSize: '13px', fontWeight: 500 }}>g</span></div>
-                  <div className="stat-label">Healthy Fats</div>
+                <div style={{ background: '#f0fdf4', padding: '14px 16px', borderRadius: '12px', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(22, 163, 74, 0.15)', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Salad size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#166534' }}>
+                      {totals.fats.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 600 }}>g</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#15803d', fontWeight: 700 }}>HEALTHY FATS</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Meals Section */}
-            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '1rem' }}>
-              Daily Meals Breakdown ({meals.length} Meals)
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Salad size={18} style={{ color: '#16a34a' }} />
+              Assigned Meals Breakdown ({meals.length} {meals.length === 1 ? 'Meal' : 'Meals'})
             </h3>
 
-            <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
+            <div style={{ display: 'grid', gap: '14px' }}>
               {meals.map((meal: any, i: number) => {
                 const foods = Array.isArray(meal.foods) ? meal.foods : []
                 const mealCals = foods.reduce((sum: number, f: any) => sum + (Number(f.calories) || 0), 0)
@@ -189,59 +224,178 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                   <section
                     key={`${meal.meal}-${i}`}
                     style={{
-                      background: 'var(--bg-elevated, #f8fafc)',
-                      borderRadius: 'var(--radius-lg)',
-                      border: '1px solid var(--border-subtle)',
-                      padding: 'var(--space-4)',
+                      background: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1.5px solid #e2e8f0',
+                      padding: '18px 20px',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
                     }}
                   >
-                    <div className="flex items-center justify-between" style={{ marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
-                      <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 700, margin: 0 }}>
-                        {meal.meal}
-                      </h4>
-                      <span className="badge badge-brand" style={{ fontSize: '11px' }}>
-                        ~{mealCals.toFixed(0)} kcal
-                      </span>
+                    <div className="flex items-center justify-between" style={{ marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: '#16a34a',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+                        <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                          {meal.meal}
+                        </h4>
+                      </div>
+
+                      {mealCals > 0 && (
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            padding: '3px 10px',
+                            borderRadius: '6px',
+                            background: 'rgba(217, 119, 6, 0.1)',
+                            color: '#b45309',
+                            border: '1px solid rgba(217, 119, 6, 0.2)',
+                          }}
+                        >
+                          🔥 ~{mealCals.toFixed(0)} kcal
+                        </span>
+                      )}
                     </div>
 
+                    {/* Meal Notes / Instructions (e.g. معالق 4 or prep timing) */}
                     {meal.notes && (
-                      <p className="text-secondary text-xs" style={{ fontStyle: 'italic', marginBottom: 12 }}>
-                        {meal.notes}
-                      </p>
+                      <div
+                        style={{
+                          background: '#f8fafc',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid #e2e8f0',
+                          marginBottom: 12,
+                          fontSize: '13px',
+                          color: '#475569',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>💡 Instructions:</span>
+                        <span>{meal.notes}</span>
+                      </div>
                     )}
 
                     {foods.length === 0 ? (
-                      <p className="text-secondary text-xs" style={{ margin: 0 }}>
+                      <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
                         No specific foods listed for this meal.
                       </p>
                     ) : (
-                      <div className="table-wrapper">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Food Item</th>
-                              <th>Portion / Quantity</th>
-                              <th>Calories</th>
-                              <th>Protein</th>
-                              <th>Carbs</th>
-                              <th>Fats</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {foods.map((food: any, j: number) => (
-                              <tr key={`${food.name}-${j}`}>
-                                <td style={{ fontWeight: 600 }}>{food.name}</td>
-                                <td style={{ fontWeight: 600, color: '#0f172a' }}>
-                                  {food.portion || (food.quantity ? `${food.quantity} ${food.unit || ''}`.trim() : '—')}
-                                </td>
-                                <td><strong>{Number(food.calories || 0).toFixed(0)}</strong></td>
-                                <td>{Number(food.protein || 0).toFixed(1)}g</td>
-                                <td>{Number(food.carbs || 0).toFixed(1)}g</td>
-                                <td>{Number(food.fats || 0).toFixed(1)}g</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div style={{ display: 'grid', gap: '8px' }}>
+                        {foods.map((food: any, j: number) => {
+                          const rawPortion = String(food.portion ?? '').trim()
+                          const rawQuantity = String(food.quantity ?? '').trim()
+                          const rawUnit = String(food.unit ?? '').trim()
+
+                          // Resolve clean portion string
+                          let displayPortion = ''
+                          if (rawPortion && rawPortion !== 'g' && rawPortion !== 'null' && rawPortion !== 'undefined') {
+                            displayPortion = rawPortion
+                          } else if (rawQuantity && rawQuantity !== '0') {
+                            displayPortion = rawUnit ? `${rawQuantity} ${rawUnit}` : rawQuantity
+                          } else if (meal.notes && meal.notes.trim()) {
+                            displayPortion = meal.notes.trim()
+                          } else {
+                            displayPortion = '1 Serving'
+                          }
+
+                          const fCal = Number(food.calories || 0)
+                          const fProt = Number(food.protein || 0)
+                          const fCarb = Number(food.carbs || 0)
+                          const fFat = Number(food.fats || 0)
+                          const hasFoodMacros = fCal > 0 || fProt > 0 || fCarb > 0 || fFat > 0
+
+                          return (
+                            <div
+                              key={`${food.name}-${j}`}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                flexWrap: 'wrap',
+                                gap: 10,
+                                padding: '10px 14px',
+                                borderRadius: '10px',
+                                background: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span
+                                  style={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    background: '#16a34a',
+                                    display: 'inline-block',
+                                  }}
+                                />
+                                <strong style={{ fontSize: '14.5px', color: '#0f172a' }}>
+                                  {food.name}
+                                </strong>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                                <span
+                                  style={{
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    padding: '4px 12px',
+                                    borderRadius: '8px',
+                                    background: '#ffffff',
+                                    color: '#0f172a',
+                                    border: '1.5px solid #cbd5e1',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                                  }}
+                                >
+                                  {displayPortion}
+                                </span>
+
+                                {hasFoodMacros && (
+                                  <div style={{ display: 'flex', gap: 6, fontSize: '11px', fontWeight: 700, flexWrap: 'wrap' }}>
+                                    {fCal > 0 && (
+                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>
+                                        {fCal.toFixed(0)} kcal
+                                      </span>
+                                    )}
+                                    {fProt > 0 && (
+                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
+                                        {fProt.toFixed(1)}g P
+                                      </span>
+                                    )}
+                                    {fCarb > 0 && (
+                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                                        {fCarb.toFixed(1)}g C
+                                      </span>
+                                    )}
+                                    {fFat > 0 && (
+                                      <span style={{ padding: '2px 8px', borderRadius: '6px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                                        {fFat.toFixed(1)}g F
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
                   </section>
