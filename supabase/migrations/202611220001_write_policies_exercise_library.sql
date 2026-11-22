@@ -1,9 +1,60 @@
 -- Migration: 202611220001_write_policies_exercise_library.sql
 -- Adds missing RLS write policies for nutrition_plans and workout_plans,
--- and creates the exercise_library table with its own RLS and seed data.
+-- creates the exercise_library table with RLS, permissions, and seed data,
+-- and reloads the schema cache.
 
 -- ============================================================
--- nutrition_plans — WRITE POLICIES
+-- 1. exercise_library — TABLE CREATION
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.exercise_library (
+  id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name                TEXT        NOT NULL UNIQUE,
+  muscle_group        TEXT        NOT NULL,
+  description         TEXT,
+  video_url           TEXT,
+  created_by_user_id  UUID        REFERENCES public.users(id) ON DELETE SET NULL,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Enable Row-Level Security
+ALTER TABLE public.exercise_library ENABLE ROW LEVEL SECURITY;
+
+-- 1.1 Read policy: All authenticated users (Admin, Coach, Client) can view exercises
+DROP POLICY IF EXISTS "exercise_library_select_all" ON public.exercise_library;
+CREATE POLICY "exercise_library_select_all"
+  ON public.exercise_library
+  FOR SELECT
+  USING (auth.uid() IS NOT NULL);
+
+-- 1.2 Insert policy: Admins and Coaches can insert new exercises
+DROP POLICY IF EXISTS "exercise_library_insert_staff" ON public.exercise_library;
+CREATE POLICY "exercise_library_insert_staff"
+  ON public.exercise_library
+  FOR INSERT
+  WITH CHECK (is_admin() OR is_coach());
+
+-- 1.3 Update policy: Admins can update all; Coaches can update exercises they created
+DROP POLICY IF EXISTS "exercise_library_coach_update_own" ON public.exercise_library;
+CREATE POLICY "exercise_library_coach_update_own"
+  ON public.exercise_library
+  FOR UPDATE
+  USING (is_admin() OR (is_coach() AND created_by_user_id = auth.uid()));
+
+-- 1.4 Delete policy: Admins can delete all; Coaches can delete exercises they created
+DROP POLICY IF EXISTS "exercise_library_coach_delete_own" ON public.exercise_library;
+CREATE POLICY "exercise_library_coach_delete_own"
+  ON public.exercise_library
+  FOR DELETE
+  USING (is_admin() OR (is_coach() AND created_by_user_id = auth.uid()));
+
+-- Grants
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.exercise_library TO authenticated;
+GRANT ALL ON public.exercise_library TO service_role;
+
+-- ============================================================
+-- 2. nutrition_plans — WRITE POLICIES
 -- ============================================================
 
 -- Coach policies
@@ -45,7 +96,7 @@ CREATE POLICY "nutrition_admin_delete"
   USING (is_admin());
 
 -- ============================================================
--- workout_plans — WRITE POLICIES
+-- 3. workout_plans — WRITE POLICIES
 -- ============================================================
 
 -- Coach policies
@@ -87,62 +138,22 @@ CREATE POLICY "workout_admin_delete"
   USING (is_admin());
 
 -- ============================================================
--- exercise_library — TABLE + RLS + GRANTS + SEED
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS public.exercise_library (
-  id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  name                TEXT        NOT NULL UNIQUE,
-  muscle_group        TEXT        NOT NULL,
-  description         TEXT,
-  video_url           TEXT,
-  created_by_user_id  UUID        REFERENCES public.users(id) ON DELETE SET NULL,
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Enable Row-Level Security
-ALTER TABLE public.exercise_library ENABLE ROW LEVEL SECURITY;
-
--- All authenticated users can read
-DROP POLICY IF EXISTS "exercise_library_select_all" ON public.exercise_library;
-CREATE POLICY "exercise_library_select_all"
-  ON public.exercise_library
-  FOR SELECT
-  USING (auth.uid() IS NOT NULL);
-
--- Admins and coaches can insert
-DROP POLICY IF EXISTS "exercise_library_insert_staff" ON public.exercise_library;
-CREATE POLICY "exercise_library_insert_staff"
-  ON public.exercise_library
-  FOR INSERT
-  WITH CHECK (is_admin() OR is_coach());
-
--- Admins have full control (covers UPDATE / DELETE via FOR ALL)
-DROP POLICY IF EXISTS "exercise_library_admin_all" ON public.exercise_library;
-CREATE POLICY "exercise_library_admin_all"
-  ON public.exercise_library
-  FOR ALL
-  USING (is_admin());
-
--- Grants
-GRANT SELECT ON public.exercise_library TO authenticated;
-GRANT ALL    ON public.exercise_library TO service_role;
-
--- ============================================================
--- Seed: 10 common exercises (idempotent)
+-- 4. Seed: Common standard exercises (idempotent)
 -- ============================================================
 
 INSERT INTO public.exercise_library (name, muscle_group, description)
 VALUES
   ('Barbell Back Squat',   'Legs',          'A compound lower-body movement using a barbell placed across the upper back.'),
-  ('Conventional Deadlift','Back / Hamstrings', 'A hip-hinge compound lift pulling a barbell from the floor to lockout.'),
+  ('Conventional Deadlift','Back',          'A hip-hinge compound lift pulling a barbell from the floor to lockout.'),
   ('Bench Press',          'Chest',         'A horizontal push pressing a barbell from chest to full arm extension.'),
-  ('Pull-Up',              'Back / Biceps', 'An upper-body pull where the athlete raises their chin above a fixed bar.'),
+  ('Pull-Up',              'Back',          'An upper-body pull where the athlete raises their chin above a fixed bar.'),
   ('Overhead Press',       'Shoulders',     'A vertical push pressing a barbell from the shoulders to overhead lockout.'),
   ('Barbell Row',          'Back',          'A horizontal pull rowing a barbell toward the lower chest from a hip-hinge position.'),
   ('Dumbbell Lunges',      'Legs',          'A unilateral lower-body exercise stepping forward with dumbbells in each hand.'),
   ('Dumbbell Bicep Curl',  'Biceps',        'An isolation curl raising dumbbells from hip to shoulder through elbow flexion.'),
   ('Tricep Dips',          'Triceps',       'A bodyweight or weighted push pressing the body upward via elbow extension on parallel bars.'),
-  ('Plank',                'Core',          'An isometric core exercise holding a push-up position with a neutral spine.')
+  ('Plank',                'Abs / Core',    'An isometric core exercise holding a push-up position with a neutral spine.')
 ON CONFLICT (name) DO NOTHING;
+
+-- Reload Schema Cache in PostgREST
+NOTIFY pgrst, 'reload schema';
