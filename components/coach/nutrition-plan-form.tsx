@@ -78,6 +78,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
     if (clients.length === 1) return [clients[0].id]
     return []
   })
+  const [clientSearch, setClientSearch] = useState('')
 
   // Plan Duration / Timeframe
   const [duration, setDuration] = useState<string>(() => {
@@ -294,91 +295,6 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
           </div>
         </div>
       )}
-
-      {/* ── 1. Target Clients (Multi-Select / Assign to Multiple Clients) ── */}
-      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1.5px solid #cbd5e1', padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-          <div>
-            <span style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Users size={16} style={{ color: 'var(--brand-600)' }} />
-              Target Clients / تعيين الخطة للعملاء * ({selectedClientIds.length} Selected)
-            </span>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              اختر عميل واحد أو عدة عملاء ليتم تطبيق هذا النظام الغذائي عليهم مباشرة
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              type="button"
-              onClick={() => setSelectedClientIds(clients.map((c) => c.id))}
-              className="btn btn-ghost btn-sm"
-              style={{ fontSize: '11px', padding: '3px 8px' }}
-            >
-              Select All (تحديد الكل)
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedClientIds([])}
-              className="btn btn-ghost btn-sm"
-              style={{ fontSize: '11px', padding: '3px 8px', color: '#64748b' }}
-            >
-              Clear (إلغاء التحديد)
-            </button>
-          </div>
-        </div>
-
-        {clients.length === 0 ? (
-          <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>No assigned clients found.</p>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-            {clients.map((c) => {
-              const isChecked = selectedClientIds.includes(c.id)
-              return (
-                <label
-                  key={c.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: isChecked ? '1.5px solid var(--brand-600)' : '1px solid #e2e8f0',
-                    background: isChecked ? 'var(--brand-50, #fcfaff)' : '#f8fafc',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    name="clientIds"
-                    value={c.id}
-                    checked={isChecked}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedClientIds((prev) => [...prev, c.id])
-                      } else {
-                        setSelectedClientIds((prev) => prev.filter((id) => id !== c.id))
-                      }
-                    }}
-                    style={{ width: 16, height: 16, accentColor: 'var(--brand-600)' }}
-                  />
-                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                    <strong style={{ fontSize: '13px', display: 'block', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {c.name}
-                    </strong>
-                    {c.email && (
-                      <span style={{ fontSize: '11px', color: '#64748b', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {c.email}
-                      </span>
-                    )}
-                  </div>
-                </label>
-              )
-            })}
-          </div>
-        )}
-      </div>
 
       {/* Plan Title */}
       <label className="form-group" style={{ marginBottom: 0 }}>
@@ -727,6 +643,116 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
         </div>
       </div>
 
+      {/* ── Assign to Clients (Search + Multi-Select) ── */}
+      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1.5px solid #cbd5e1', padding: '16px', marginTop: 'var(--space-2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Users size={18} style={{ color: 'var(--brand-600)' }} />
+              Assign to Clients / اختر العملاء * ({selectedClientIds.length} Selected)
+            </span>
+            <span style={{ fontSize: '12px', color: '#64748b' }}>
+              ابحث واختر العملاء المعينين لك لتطبيق هذا النظام الغذائي عليهم
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => setSelectedClientIds(clients.map((c) => c.id))}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '3px 8px' }}
+            >
+              Select All (تحديد الكل)
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedClientIds([])}
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '11px', padding: '3px 8px', color: '#64748b' }}
+            >
+              Clear (إلغاء التحديد)
+            </button>
+          </div>
+        </div>
+
+        {/* Search Input */}
+        <div style={{ marginBottom: 10 }}>
+          <input
+            type="text"
+            placeholder="🔍 Search clients by name or email..."
+            value={clientSearch}
+            onChange={(e) => setClientSearch(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              fontSize: '13px',
+              outline: 'none',
+              background: '#f8fafc',
+            }}
+          />
+        </div>
+
+        {clients.length === 0 ? (
+          <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>No assigned clients found. Contact admin to assign clients to you.</p>
+        ) : (() => {
+          const q = clientSearch.toLowerCase().trim()
+          const filtered = q
+            ? clients.filter((c) => c.name.toLowerCase().includes(q) || (c.email && c.email.toLowerCase().includes(q)))
+            : clients
+          return filtered.length === 0 ? (
+            <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>No clients match &quot;{clientSearch}&quot;</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
+              {filtered.map((c) => {
+                const isChecked = selectedClientIds.includes(c.id)
+                return (
+                  <label
+                    key={c.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: isChecked ? '1.5px solid var(--brand-600)' : '1px solid #e2e8f0',
+                      background: isChecked ? 'var(--brand-50, #fcfaff)' : '#f8fafc',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedClientIds((prev) => [...prev, c.id])
+                        } else {
+                          setSelectedClientIds((prev) => prev.filter((id) => id !== c.id))
+                        }
+                      }}
+                      style={{ width: 16, height: 16, accentColor: 'var(--brand-600)' }}
+                    />
+                    <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                      <strong style={{ fontSize: '13px', display: 'block', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {c.name}
+                      </strong>
+                      {c.email && (
+                        <span style={{ fontSize: '11px', color: '#64748b', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {c.email}
+                        </span>
+                      )}
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
+          )
+        })()}
+      </div>
+
       {/* Actions */}
       <div
         style={{
@@ -742,9 +768,13 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
           className="btn btn-primary"
           type="submit"
           disabled={isPending}
-          style={{ minWidth: 180, fontWeight: 700 }}
+          style={{ minWidth: 200, fontWeight: 700 }}
         >
-          {isPending ? 'Saving Plan…' : initialData ? 'Update Nutrition Plan' : 'Save Nutrition Plan'}
+          {isPending
+            ? 'Saving & Assigning Plan…'
+            : initialData
+            ? 'Update & Assign Nutrition Plan'
+            : 'Save & Assign Nutrition Plan'}
         </button>
       </div>
     </form>

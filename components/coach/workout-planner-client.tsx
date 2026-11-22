@@ -15,6 +15,7 @@ import {
   Layers,
   Moon,
   ChevronRight,
+  Search,
 } from 'lucide-react'
 import WorkoutPlanForm from '@/components/coach/workout-plan-form'
 import { saveWorkoutPlanAction, deleteWorkoutPlanAction } from '@/app/coach/workout-planner/actions'
@@ -56,6 +57,7 @@ export default function WorkoutPlannerClient({
   )
   const [showNewPlanForm, setShowNewPlanForm] = useState(false)
   const [editingPlanId, setEditingPlanId] = useState<string | null>(editId)
+  const [clientSearchQuery, setClientSearchQuery] = useState('')
 
   const selectedClient = clientList.find((c) => c.id === selectedClientId)
   const clientPlans = workoutPlans.filter((p: any) => p.client_id === selectedClientId)
@@ -218,7 +220,7 @@ export default function WorkoutPlannerClient({
             </span>
             <div>
               <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                Select Client
+                Select Client / اختر العميل
               </h2>
               <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>
                 {clientList.length} clients assigned to you
@@ -226,6 +228,30 @@ export default function WorkoutPlannerClient({
             </div>
           </div>
         </div>
+
+        {/* Search Input */}
+        {clientList.length > 3 && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ position: 'relative' }}>
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input
+                type="text"
+                placeholder="Search clients by name or email..."
+                value={clientSearchQuery}
+                onChange={(e) => setClientSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px 8px 32px',
+                  borderRadius: 10,
+                  border: '1px solid #e2e8f0',
+                  fontSize: 13,
+                  outline: 'none',
+                  background: '#f8fafc',
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {clientList.length === 0 ? (
           <div
@@ -242,61 +268,71 @@ export default function WorkoutPlannerClient({
               No clients assigned to your account yet. Contact Admin to assign clients.
             </p>
           </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
-            {clientList.map((client) => {
-              const isActive = client.id === selectedClientId
-              const planCount = workoutPlans.filter((p: any) => p.client_id === client.id).length
-              return (
-                <button
-                  key={client.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedClientId(client.id)
-                    setShowNewPlanForm(false)
-                    setEditingPlanId(null)
-                  }}
-                  style={{
-                    padding: '12px 16px',
-                    borderRadius: 12,
-                    border: isActive ? '2px solid #7c3aed' : '1.5px solid #e2e8f0',
-                    background: isActive ? '#f5f3ff' : '#ffffff',
-                    color: '#0f172a',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isActive ? '0 4px 12px rgba(124, 58, 237, 0.12)' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: isActive ? '#6d28d9' : '#0f172a' }}>
-                      {client.name}
-                    </div>
-                    {client.email && (
-                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{client.email}</div>
-                    )}
-                  </div>
-                  <span
+        ) : (() => {
+          const sq = clientSearchQuery.toLowerCase().trim()
+          const filteredClients = sq
+            ? clientList.filter((c) => c.name.toLowerCase().includes(sq) || (c.email && c.email.toLowerCase().includes(sq)))
+            : clientList
+          return filteredClients.length === 0 ? (
+            <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, textAlign: 'center', padding: '1rem' }}>
+              No clients match &quot;{clientSearchQuery}&quot;
+            </p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, maxHeight: 260, overflowY: 'auto' }}>
+              {filteredClients.map((client) => {
+                const isActive = client.id === selectedClientId
+                const planCount = workoutPlans.filter((p: any) => p.client_id === client.id).length
+                return (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedClientId(client.id)
+                      setShowNewPlanForm(false)
+                      setEditingPlanId(null)
+                    }}
                     style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: '3px 9px',
-                      borderRadius: 7,
-                      background: isActive ? '#7c3aed' : '#f1f5f9',
-                      color: isActive ? '#ffffff' : '#475569',
-                      flexShrink: 0,
+                      padding: '12px 16px',
+                      borderRadius: 12,
+                      border: isActive ? '2px solid #7c3aed' : '1.5px solid #e2e8f0',
+                      background: isActive ? '#f5f3ff' : '#ffffff',
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                      boxShadow: isActive ? '0 4px 12px rgba(124, 58, 237, 0.12)' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                     }}
                   >
-                    {planCount} {planCount === 1 ? 'plan' : 'plans'}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        )}
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: isActive ? '#6d28d9' : '#0f172a' }}>
+                        {client.name}
+                      </div>
+                      {client.email && (
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{client.email}</div>
+                      )}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '3px 9px',
+                        borderRadius: 7,
+                        background: isActive ? '#7c3aed' : '#f1f5f9',
+                        color: isActive ? '#ffffff' : '#475569',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {planCount} {planCount === 1 ? 'plan' : 'plans'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )
+        })()}
       </section>
 
       {/* ── STEP 2 & 3: Client Workspace ── */}
