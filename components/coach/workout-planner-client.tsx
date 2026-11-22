@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CalendarDays, User, Plus, Edit3, Trash2, Calendar, BookOpen, Clock, Dumbbell, Layers, CheckCircle2 } from 'lucide-react'
+import {
+  CalendarDays, User, Plus, Edit3, Trash2, Calendar,
+  BookOpen, Dumbbell, Layers, Moon
+} from 'lucide-react'
 import WorkoutPlanForm from '@/components/coach/workout-plan-form'
 import { saveWorkoutPlanAction, deleteWorkoutPlanAction } from '@/app/coach/workout-planner/actions'
 
@@ -20,12 +23,12 @@ type Props = {
 }
 
 const DURATION_LABELS: Record<string, string> = {
-  '1_week': '1 Week (Weekly Split)',
-  '2_weeks': '2 Weeks',
-  '1_month': '1 Month (4 Weeks)',
-  '2_months': '2 Months (8 Weeks)',
-  '3_months': '3 Months (12 Weeks)',
-  'ongoing': 'Custom / Ongoing',
+  '1_week': 'أسبوع واحد',
+  '2_weeks': 'أسبوعين',
+  '1_month': 'شهر (4 أسابيع)',
+  '2_months': 'شهرين (8 أسابيع)',
+  '3_months': '3 أشهر (12 أسبوع)',
+  'ongoing': 'مستمر / مخصص',
 }
 
 export default function WorkoutPlannerClient({
@@ -38,7 +41,6 @@ export default function WorkoutPlannerClient({
   workoutPlans,
   exerciseLibrary,
 }: Props) {
-  // If only 1 client, select them by default
   const [selectedClientId, setSelectedClientId] = useState<string>(
     initialClientId || (clientList.length === 1 ? clientList[0].id : '')
   )
@@ -52,163 +54,99 @@ export default function WorkoutPlannerClient({
   const showForm = showNewPlanForm || Boolean(editPlan)
 
   return (
-    <main className="page-body animate-fade-in" style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: '3rem' }}>
+    <main style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.25rem 4rem' }}>
+
       {/* ── Page Header ── */}
-      <header
-        style={{
-          marginBottom: '2rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-          borderBottom: '1px solid #e2e8f0',
-          paddingBottom: '1.25rem',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
-              }}
-            >
-              <CalendarDays size={24} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-                Client Workout Planner
-              </h1>
-              <p style={{ fontSize: '14px', color: '#475569', margin: '4px 0 0', fontWeight: 500 }}>
-                مخطط التمارين والجداول الأسبوعية والشهرية للعملاء
-              </p>
-            </div>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14,
+            background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', boxShadow: '0 4px 14px rgba(124,58,237,.28)',
+          }}>
+            <CalendarDays size={24} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              Client Workout Planner
+            </h1>
+            <p style={{ fontSize: 13, color: '#64748b', margin: '3px 0 0', fontWeight: 500 }}>
+              مخطط الجداول التدريبية الأسبوعية والشهرية للعملاء
+            </p>
           </div>
         </div>
 
         <Link
           href="/coach/exercise-library"
-          className="btn btn-ghost"
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: '14px',
-            fontWeight: 600,
-            color: '#4f46e5',
-            background: 'rgba(79, 70, 229, 0.08)',
-            border: '1px solid rgba(79, 70, 229, 0.2)',
-            padding: '8px 16px',
-            borderRadius: '10px',
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            fontSize: 13, fontWeight: 700, color: '#4f46e5',
+            background: 'rgba(79,70,229,.08)', border: '1.5px solid rgba(79,70,229,.2)',
+            padding: '8px 16px', borderRadius: 10, textDecoration: 'none',
           }}
         >
-          <BookOpen size={17} />
-          <span>مكتبة التمارين ({exerciseLibrary.length} تمرين)</span>
+          <BookOpen size={16} />
+          مكتبة التمارين ({exerciseLibrary.length})
         </Link>
-      </header>
+      </div>
 
-      {/* ── Flash Notifications ── */}
+      {/* ── Flash Messages ── */}
       {flashError && (
-        <div
-          style={{
-            padding: '12px 18px',
-            background: '#fee2e2',
-            color: '#991b1b',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontWeight: 600,
-            fontSize: '14px',
-            border: '1px solid #f87171',
-          }}
-        >
-          {flashError === 'missing-fields' ? 'يرجى ملء جميع الحقول المطلوبة وحفظ الخطة.' : flashError}
+        <div style={{
+          padding: '12px 18px', background: '#fee2e2', color: '#991b1b',
+          borderRadius: 10, marginBottom: '1.5rem', fontWeight: 600, fontSize: 14,
+          border: '1px solid #f87171', display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          ⚠️ {flashError === 'missing-fields' ? 'يرجى ملء جميع الحقول المطلوبة.' : flashError}
         </div>
       )}
       {flashSaved && (
-        <div
-          style={{
-            padding: '12px 18px',
-            background: '#dcfce7',
-            color: '#166534',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontWeight: 600,
-            fontSize: '14px',
-            border: '1px solid #86efac',
-          }}
-        >
-          ✓ تم حفظ خطة التمارين بنجاح وتطبيقها على العميل.
+        <div style={{
+          padding: '12px 18px', background: '#dcfce7', color: '#166534',
+          borderRadius: 10, marginBottom: '1.5rem', fontWeight: 600, fontSize: 14,
+          border: '1px solid #86efac',
+        }}>
+          ✓ تم حفظ خطة التمارين بنجاح.
         </div>
       )}
       {flashDeleted && (
-        <div
-          style={{
-            padding: '12px 18px',
-            background: '#fef3c7',
-            color: '#92400e',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontWeight: 600,
-            fontSize: '14px',
-            border: '1px solid #fcd34d',
-          }}
-        >
-          تم حذف الخطة التدريبية.
+        <div style={{
+          padding: '12px 18px', background: '#fef3c7', color: '#92400e',
+          borderRadius: 10, marginBottom: '1.5rem', fontWeight: 600, fontSize: 14,
+          border: '1px solid #fcd34d',
+        }}>
+          🗑️ تم حذف الخطة التدريبية.
         </div>
       )}
 
       {/* ── STEP 1: Select Client ── */}
-      <section
-        style={{
-          background: '#ffffff',
-          borderRadius: '16px',
-          border: '1.5px solid #e2e8f0',
-          padding: '20px 24px',
-          marginBottom: '2rem',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+      <section style={{
+        background: '#fff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+        padding: '20px 24px', marginBottom: '1.75rem',
+        boxShadow: '0 1px 6px rgba(0,0,0,.04)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                background: '#7c3aed',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: 800,
-              }}
-            >
-              1
-            </span>
-            <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-              اختر العميل (Select Client)
-            </h2>
+            <span style={{
+              width: 28, height: 28, borderRadius: '50%', background: '#7c3aed',
+              color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13, fontWeight: 800, flexShrink: 0,
+            }}>1</span>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>اختر العميل</h2>
+              <p style={{ fontSize: 12, color: '#94a3b8', margin: '2px 0 0' }}>{clientList.length} عميل مشترك معك</p>
+            </div>
           </div>
-          <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
-            {clientList.length} عميل مشترك معك
-          </span>
         </div>
 
         {clientList.length === 0 ? (
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
-            لا يوجد عملاء مخصصين لك حالياً. يجب على الأدمن تعيين عملاء لحسابك للبدء في إنشاء الجداول.
-          </p>
+          <div style={{ padding: '1.5rem', background: '#f8fafc', borderRadius: 10, border: '1px dashed #cbd5e1', textAlign: 'center' }}>
+            <User size={28} style={{ color: '#94a3b8', marginBottom: 8 }} />
+            <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>لا يوجد عملاء مخصصين لك. يجب على الأدمن تعيين عملاء أولاً.</p>
+          </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 10 }}>
             {clientList.map((client) => {
               const isActive = client.id === selectedClientId
               const planCount = workoutPlans.filter((p: any) => p.client_id === client.id).length
@@ -216,47 +154,30 @@ export default function WorkoutPlannerClient({
                 <button
                   key={client.id}
                   type="button"
-                  onClick={() => {
-                    setSelectedClientId(client.id)
-                    setShowNewPlanForm(false)
-                    setEditingPlanId(null)
-                  }}
+                  onClick={() => { setSelectedClientId(client.id); setShowNewPlanForm(false); setEditingPlanId(null) }}
                   style={{
-                    padding: '14px 18px',
-                    borderRadius: '12px',
+                    padding: '12px 16px', borderRadius: 12,
                     border: isActive ? '2px solid #7c3aed' : '1.5px solid #e2e8f0',
-                    background: isActive ? '#f5f3ff' : '#ffffff',
-                    color: '#0f172a',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                    boxShadow: isActive ? '0 4px 12px rgba(124, 58, 237, 0.15)' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
+                    background: isActive ? '#f5f3ff' : '#fff',
+                    color: '#0f172a', cursor: 'pointer', textAlign: 'left',
+                    transition: 'all .15s', boxShadow: isActive ? '0 4px 12px rgba(124,58,237,.12)' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   }}
                 >
                   <div>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: isActive ? '#6d28d9' : '#0f172a' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: isActive ? '#6d28d9' : '#0f172a' }}>
                       {client.name}
                     </div>
                     {client.email && (
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: 2 }}>
-                        {client.email}
-                      </div>
+                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, direction: 'ltr' }}>{client.email}</div>
                     )}
                   </div>
-
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      padding: '4px 10px',
-                      borderRadius: '8px',
-                      background: isActive ? '#7c3aed' : '#f1f5f9',
-                      color: isActive ? '#ffffff' : '#475569',
-                    }}
-                  >
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 7,
+                    background: isActive ? '#7c3aed' : '#f1f5f9',
+                    color: isActive ? '#fff' : '#475569',
+                    flexShrink: 0,
+                  }}>
                     {planCount} خطة
                   </span>
                 </button>
@@ -266,53 +187,29 @@ export default function WorkoutPlannerClient({
         )}
       </section>
 
-      {/* ── STEP 2 & 3: Selected Client Workspace ── */}
+      {/* ── STEP 2 & 3: Client Workspace ── */}
       {selectedClient && (
         <div>
-          {/* STEP 2: Current Plans for Client */}
-          <section
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              border: '1.5px solid #e2e8f0',
-              padding: '20px 24px',
-              marginBottom: '2rem',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 12,
-                marginBottom: '1rem',
-              }}
-            >
+
+          {/* STEP 2: Plans List */}
+          <section style={{
+            background: '#fff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+            padding: '20px 24px', marginBottom: '1.75rem',
+            boxShadow: '0 1px 6px rgba(0,0,0,.04)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    background: '#7c3aed',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                  }}
-                >
-                  2
-                </span>
+                <span style={{
+                  width: 28, height: 28, borderRadius: '50%', background: '#7c3aed',
+                  color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 800, flexShrink: 0,
+                }}>2</span>
                 <div>
-                  <h2 style={{ fontSize: '17px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                    خطط تمارين العميل: <span style={{ color: '#7c3aed' }}>{selectedClient.name}</span>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                    خطط <span style={{ color: '#7c3aed' }}>{selectedClient.name}</span>
                   </h2>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0' }}>
-                    {clientPlans.length} خطة تدريبية مخصصة لهذا العميل
+                  <p style={{ fontSize: 12, color: '#94a3b8', margin: '2px 0 0' }}>
+                    {clientPlans.length} خطة تدريبية مخصصة
                   </p>
                 </div>
               </div>
@@ -320,163 +217,126 @@ export default function WorkoutPlannerClient({
               {!showForm && (
                 <button
                   type="button"
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setShowNewPlanForm(true)
-                    setEditingPlanId(null)
-                  }}
+                  onClick={() => { setShowNewPlanForm(true); setEditingPlanId(null) }}
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    padding: '8px 18px',
-                    borderRadius: '10px',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '9px 18px', borderRadius: 10, border: 'none',
+                    background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                    color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    boxShadow: '0 3px 10px rgba(124,58,237,.25)',
                   }}
                 >
-                  <Plus size={16} /> خطة تمارين جديدة
+                  <Plus size={15} /> خطة تمارين جديدة
                 </button>
               )}
             </div>
 
             {clientPlans.length === 0 ? (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '2.5rem 1rem',
-                  background: '#f8fafc',
-                  borderRadius: '12px',
-                  border: '1px dashed #cbd5e1',
-                }}
-              >
-                <Dumbbell size={36} style={{ color: '#94a3b8', margin: '0 auto 10px', display: 'block' }} />
-                <p style={{ color: '#475569', fontSize: '15px', fontWeight: 600, margin: '0 0 12px' }}>
-                  لم يتم إنشاء أي خطة تمارين بعد للعميل {selectedClient.name}
+              <div style={{
+                textAlign: 'center', padding: '2.5rem 1rem',
+                background: '#f8fafc', borderRadius: 12, border: '1px dashed #cbd5e1',
+              }}>
+                <Dumbbell size={34} style={{ color: '#94a3b8', margin: '0 auto 10px', display: 'block' }} />
+                <p style={{ color: '#475569', fontSize: 14, fontWeight: 600, margin: '0 0 14px' }}>
+                  لا توجد خطط بعد لـ {selectedClient.name}
                 </p>
                 <button
                   type="button"
-                  className="btn btn-primary btn-sm"
                   onClick={() => setShowNewPlanForm(true)}
-                  style={{ fontWeight: 700, padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '8px 18px', borderRadius: 9, border: 'none',
+                    background: 'linear-gradient(135deg,#7c3aed,#4f46e5)',
+                    color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  }}
                 >
-                  <Plus size={15} /> ابدأ بإنشاء أول خطة
+                  <Plus size={14} /> ابدأ بإنشاء أول خطة
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: 14 }}>
+              <div style={{ display: 'grid', gap: 12 }}>
                 {clientPlans.map((plan: any) => {
                   const schedule: any[] = Array.isArray(plan.schedule) ? plan.schedule : []
-                  const workoutDays = schedule.filter((d: any) => !d.restDay).length
-                  const restDays = schedule.filter((d: any) => d.restDay).length
+                  const workoutDays = schedule.filter((d: any) => !d.restDay)
+                  const restCount = schedule.filter((d: any) => d.restDay).length
                   const isEditing = editingPlanId === plan.id
-                  const planDurationKey = schedule[0]?.planDuration || '1_month'
-                  const planDurationLabel = DURATION_LABELS[planDurationKey] || '1 Month'
+                  const durationKey = schedule[0]?.planDuration || '1_month'
+                  const durationLabel = DURATION_LABELS[durationKey] || 'شهر'
 
                   return (
                     <div
                       key={plan.id}
                       style={{
-                        padding: '18px 20px',
-                        borderRadius: '12px',
-                        border: isEditing ? '2.5px solid #7c3aed' : '1.5px solid #e2e8f0',
-                        background: isEditing ? '#faf5ff' : '#ffffff',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                        borderRadius: 14,
+                        border: isEditing ? '2px solid #7c3aed' : '1.5px solid #e2e8f0',
+                        background: isEditing ? '#faf5ff' : '#fafafa',
+                        overflow: 'hidden',
+                        transition: 'all .2s',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flexWrap: 'wrap',
-                          gap: 12,
-                          marginBottom: 10,
-                        }}
-                      >
-                        <div>
+                      {/* Plan Header */}
+                      <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                            <strong style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
+                            <strong style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
                               {plan.title}
                             </strong>
-                            <span
-                              style={{
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                padding: '3px 10px',
-                                borderRadius: '6px',
-                                background: 'rgba(124, 58, 237, 0.1)',
-                                color: '#6d28d9',
-                              }}
-                            >
-                              مدة الخطة: {planDurationLabel}
+                            <span style={{
+                              fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 6,
+                              background: 'rgba(124,58,237,.1)', color: '#6d28d9',
+                            }}>
+                              {durationLabel}
                             </span>
                             {isEditing && (
-                              <span
-                                style={{
-                                  fontSize: '11px',
-                                  fontWeight: 700,
-                                  padding: '3px 8px',
-                                  borderRadius: '6px',
-                                  background: '#fef3c7',
-                                  color: '#b45309',
-                                }}
-                              >
-                                جاري التعديل الآن
+                              <span style={{
+                                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 5,
+                                background: '#fef3c7', color: '#b45309',
+                              }}>
+                                ✏️ جاري التعديل
                               </span>
                             )}
                           </div>
 
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: 16,
-                              alignItems: 'center',
-                              fontSize: '13px',
-                              color: '#64748b',
-                              marginTop: 6,
-                              flexWrap: 'wrap',
-                            }}
-                          >
+                          <div style={{ display: 'flex', gap: 14, alignItems: 'center', fontSize: 12, color: '#94a3b8', marginTop: 6, flexWrap: 'wrap' }}>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <Calendar size={13} /> آخر تحديث: {new Date(plan.updated_at).toLocaleDateString()}
+                              <Calendar size={12} />
+                              {new Date(plan.updated_at).toLocaleDateString('ar-EG')}
                             </span>
-                            <span style={{ fontWeight: 600, color: '#334155' }}>
-                              {schedule.length} أيام ({workoutDays} تمرين • {restDays} راحة)
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#475569', fontWeight: 600 }}>
+                              <Dumbbell size={12} /> {workoutDays.length} يوم تمرين
                             </span>
+                            {restCount > 0 && (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#94a3b8' }}>
+                                <Moon size={11} /> {restCount} راحة
+                              </span>
+                            )}
+                            {plan.notes && (
+                              <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                                {plan.notes.length > 50 ? plan.notes.slice(0, 50) + '…' : plan.notes}
+                              </span>
+                            )}
                           </div>
-
-                          {plan.notes && (
-                            <p style={{ fontSize: '13px', color: '#475569', margin: '8px 0 0', fontWeight: 500 }}>
-                              تعليمات: {plan.notes}
-                            </p>
-                          )}
                         </div>
 
                         {/* Actions */}
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
                           <button
                             type="button"
                             onClick={() => {
-                              if (isEditing) {
-                                setEditingPlanId(null)
-                                setShowNewPlanForm(false)
-                              } else {
-                                setEditingPlanId(plan.id)
-                                setShowNewPlanForm(false)
-                              }
+                              if (isEditing) { setEditingPlanId(null); setShowNewPlanForm(false) }
+                              else { setEditingPlanId(plan.id); setShowNewPlanForm(false) }
                             }}
-                            className="btn btn-ghost btn-sm"
                             style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              fontSize: '13px',
-                              fontWeight: 700,
+                              display: 'inline-flex', alignItems: 'center', gap: 5,
+                              padding: '7px 14px', borderRadius: 8,
+                              border: `1.5px solid ${isEditing ? '#fca5a5' : 'rgba(79,70,229,.25)'}`,
+                              background: isEditing ? '#fee2e2' : 'rgba(79,70,229,.06)',
                               color: isEditing ? '#dc2626' : '#4f46e5',
+                              fontSize: 12, fontWeight: 700, cursor: 'pointer',
                             }}
                           >
-                            <Edit3 size={14} /> {isEditing ? 'إلغاء التعديل' : 'تعديل الخطة'}
+                            <Edit3 size={13} />
+                            {isEditing ? 'إلغاء' : 'تعديل'}
                           </button>
 
                           <form action={deleteWorkoutPlanAction}>
@@ -484,40 +344,38 @@ export default function WorkoutPlannerClient({
                             <input type="hidden" name="clientId" value={plan.client_id} />
                             <button
                               type="submit"
-                              className="btn btn-ghost btn-sm"
                               style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 5,
+                                padding: '7px 14px', borderRadius: 8,
+                                border: '1.5px solid #fca5a5',
+                                background: '#fff',
                                 color: '#dc2626',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                fontSize: '13px',
-                                fontWeight: 600,
+                                fontSize: 12, fontWeight: 700, cursor: 'pointer',
                               }}
                             >
-                              <Trash2 size={14} /> حذف
+                              <Trash2 size={13} /> حذف
                             </button>
                           </form>
                         </div>
                       </div>
 
-                      {/* Day tags preview */}
-                      {!isEditing && schedule.length > 0 && (
-                        <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          {schedule.map((day: any, i: number) => (
+                      {/* Workout Days Preview — Rest days HIDDEN */}
+                      {!isEditing && workoutDays.length > 0 && (
+                        <div style={{
+                          padding: '12px 20px', borderTop: '1px solid #f1f5f9',
+                          display: 'flex', gap: 7, flexWrap: 'wrap', background: '#fff',
+                        }}>
+                          {workoutDays.map((day: any, i: number) => (
                             <span
                               key={i}
                               style={{
-                                padding: '4px 12px',
-                                borderRadius: '8px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                background: day.restDay ? '#f1f5f9' : '#ede9fe',
-                                color: day.restDay ? '#64748b' : '#6d28d9',
-                                border: day.restDay ? '1px dashed #cbd5e1' : '1px solid #ddd6fe',
+                                padding: '5px 13px', borderRadius: 8,
+                                fontSize: 12, fontWeight: 700,
+                                background: '#ede9fe', color: '#6d28d9',
+                                border: '1px solid #ddd6fe',
                               }}
                             >
-                              {day.day}
-                              {day.workout && day.workout !== day.day ? ` – ${day.workout}` : ''}
+                              {day.day}{day.workout && day.workout !== day.day ? ` – ${day.workout}` : ''}
                             </span>
                           ))}
                         </div>
@@ -529,64 +387,45 @@ export default function WorkoutPlannerClient({
             )}
           </section>
 
-          {/* STEP 3: Plan Builder (Day-by-Day Editor) */}
+          {/* STEP 3: Plan Builder */}
           {showForm && (
-            <section
-              style={{
-                background: '#ffffff',
-                borderRadius: '16px',
-                border: '2px solid #7c3aed',
-                padding: '24px 28px',
-                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.08)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '1.5rem',
-                  borderBottom: '1.5px solid #f1f5f9',
-                  paddingBottom: '1rem',
-                  flexWrap: 'wrap',
-                  gap: 12,
-                }}
-              >
+            <section style={{
+              background: '#fff', borderRadius: 16,
+              border: '2px solid #7c3aed',
+              padding: '24px 28px',
+              boxShadow: '0 8px 28px rgba(124,58,237,.09)',
+            }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginBottom: '1.5rem', borderBottom: '1.5px solid #f1f5f9',
+                paddingBottom: '1rem', flexWrap: 'wrap', gap: 12,
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: '50%',
-                      background: '#7c3aed',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      fontWeight: 800,
-                    }}
-                  >
-                    3
-                  </span>
+                  <span style={{
+                    width: 30, height: 30, borderRadius: '50%', background: '#7c3aed',
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 14, fontWeight: 800, flexShrink: 0,
+                  }}>3</span>
                   <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                      {editPlan ? `تعديل جدول التمارين: ${editPlan.title}` : `بناء جدول تمارين جديد للعميل ${selectedClient.name}`}
+                    <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                      {editPlan
+                        ? `تعديل: ${editPlan.title}`
+                        : `خطة جديدة — ${selectedClient.name}`}
                     </h2>
-                    <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0', fontWeight: 500 }}>
-                      حدد مدة الخطة، قسّم الأيام التدريبية، واختر التمارين ومقدار المجموعات والعدات والأوزان
+                    <p style={{ fontSize: 12, color: '#64748b', margin: '3px 0 0' }}>
+                      حدد مدة الخطة، قسّم الأيام، واختر التمارين مع العدات والأوزان
                     </p>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowNewPlanForm(false)
-                    setEditingPlanId(null)
+                  onClick={() => { setShowNewPlanForm(false); setEditingPlanId(null) }}
+                  style={{
+                    padding: '7px 16px', borderRadius: 8,
+                    border: '1.5px solid #e2e8f0', background: '#f8fafc',
+                    color: '#475569', fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   }}
-                  className="btn btn-ghost btn-sm"
-                  style={{ fontWeight: 700, fontSize: '13px' }}
                 >
                   إلغاء وإغلاق
                 </button>
