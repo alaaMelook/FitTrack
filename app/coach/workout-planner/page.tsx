@@ -10,7 +10,6 @@ export default async function WorkoutPlannerPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    clientId?: string
     edit?: string
     error?: string
     saved?: string
@@ -78,7 +77,6 @@ export default async function WorkoutPlannerPage({
 
   return (
     <WorkoutPlannerClient
-      selectedClientId={params.clientId ?? null}
       editId={params.edit ?? null}
       flashError={params.error ?? null}
       flashSaved={params.saved ?? null}
