@@ -30,6 +30,8 @@ export type Measurement = {
   arm_cm: number | null
   hips_cm: number | null
   waist_cm: number | null
+  upper_abs_cm?: number | null
+  lower_abs_cm?: number | null
   thigh_cm: number | null
   calf_cm?: number | null
   back_cm?: number | null
@@ -543,12 +545,10 @@ export function ClientProgressTracker({ measurements }: Props) {
                     <th>Chest</th>
                     <th>Arm</th>
                     <th>Glutes</th>
-                    <th>Abs</th>
+                    <th>Upper Abs</th>
+                    <th>Lower Abs</th>
                     <th>Leg</th>
                     <th>Calf</th>
-                    <th>Back</th>
-                    <th>Upper Body</th>
-                    <th>Lower Body</th>
                     <th>Notes</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
@@ -559,12 +559,12 @@ export function ClientProgressTracker({ measurements }: Props) {
                     const cDelta = m.chest_cm != null && prev?.chest_cm != null ? m.chest_cm - prev.chest_cm : null
                     const aDelta = m.arm_cm != null && prev?.arm_cm != null ? m.arm_cm - prev.arm_cm : null
                     const hDelta = m.hips_cm != null && prev?.hips_cm != null ? m.hips_cm - prev.hips_cm : null
-                    const wDelta = m.waist_cm != null && prev?.waist_cm != null ? m.waist_cm - prev.waist_cm : null
+                    const uAbsVal = m.upper_abs_cm ?? m.waist_cm
+                    const prevUAbsVal = prev ? (prev.upper_abs_cm ?? prev.waist_cm) : null
+                    const uAbsDelta = uAbsVal != null && prevUAbsVal != null ? uAbsVal - prevUAbsVal : null
+                    const lAbsDelta = m.lower_abs_cm != null && prev?.lower_abs_cm != null ? m.lower_abs_cm - prev.lower_abs_cm : null
                     const tDelta = m.thigh_cm != null && prev?.thigh_cm != null ? m.thigh_cm - prev.thigh_cm : null
                     const calfDelta = m.calf_cm != null && prev?.calf_cm != null ? m.calf_cm - prev.calf_cm : null
-                    const backDelta = m.back_cm != null && prev?.back_cm != null ? m.back_cm - prev.back_cm : null
-                    const upperDelta = m.upper_body_cm != null && prev?.upper_body_cm != null ? m.upper_body_cm - prev.upper_body_cm : null
-                    const lowerDelta = m.lower_body_cm != null && prev?.lower_body_cm != null ? m.lower_body_cm - prev.lower_body_cm : null
 
                     return (
                       <tr key={m.id}>
@@ -594,9 +594,15 @@ export function ClientProgressTracker({ measurements }: Props) {
                           )}
                         </td>
                         <td>
-                          <div>{m.waist_cm != null ? `${m.waist_cm} cm` : '—'}</div>
-                          {prev && wDelta != null && Math.abs(wDelta) >= 0.1 && (
-                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(wDelta, 'cm', true)}</div>
+                          <div>{uAbsVal != null ? `${uAbsVal} cm` : '—'}</div>
+                          {prev && uAbsDelta != null && Math.abs(uAbsDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(uAbsDelta, 'cm', true)}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div>{m.lower_abs_cm != null ? `${m.lower_abs_cm} cm` : '—'}</div>
+                          {prev && lAbsDelta != null && Math.abs(lAbsDelta) >= 0.1 && (
+                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(lAbsDelta, 'cm', true)}</div>
                           )}
                         </td>
                         <td>
@@ -609,24 +615,6 @@ export function ClientProgressTracker({ measurements }: Props) {
                           <div>{m.calf_cm != null ? `${m.calf_cm} cm` : '—'}</div>
                           {prev && calfDelta != null && Math.abs(calfDelta) >= 0.1 && (
                             <div style={{ marginTop: 2 }}>{renderDeltaBadge(calfDelta, 'cm')}</div>
-                          )}
-                        </td>
-                        <td>
-                          <div>{m.back_cm != null ? `${m.back_cm} cm` : '—'}</div>
-                          {prev && backDelta != null && Math.abs(backDelta) >= 0.1 && (
-                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(backDelta, 'cm')}</div>
-                          )}
-                        </td>
-                        <td>
-                          <div>{m.upper_body_cm != null ? `${m.upper_body_cm} cm` : '—'}</div>
-                          {prev && upperDelta != null && Math.abs(upperDelta) >= 0.1 && (
-                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(upperDelta, 'cm')}</div>
-                          )}
-                        </td>
-                        <td>
-                          <div>{m.lower_body_cm != null ? `${m.lower_body_cm} cm` : '—'}</div>
-                          {prev && lowerDelta != null && Math.abs(lowerDelta) >= 0.1 && (
-                            <div style={{ marginTop: 2 }}>{renderDeltaBadge(lowerDelta, 'cm')}</div>
                           )}
                         </td>
                         <td style={{ color: 'var(--text-secondary)', maxWidth: 180 }} className="truncate" title={m.notes ?? ''}>
@@ -690,11 +678,12 @@ export function ClientProgressTracker({ measurements }: Props) {
                         )}
                       </div>
                       <div>
-                        <span style={{ color: 'var(--text-muted)' }}>Abs: </span>
-                        <strong>{m.waist_cm != null ? `${m.waist_cm}` : '—'}</strong>
-                        {prev && wDelta != null && Math.abs(wDelta) >= 0.1 && (
-                          <div style={{ marginTop: 2 }}>{renderDeltaBadge(wDelta, '', true)}</div>
-                        )}
+                        <span style={{ color: 'var(--text-muted)' }}>Upper Abs: </span>
+                        <strong>{m.upper_abs_cm != null ? `${m.upper_abs_cm}` : m.waist_cm != null ? `${m.waist_cm}` : '—'}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Lower Abs: </span>
+                        <strong>{m.lower_abs_cm != null ? `${m.lower_abs_cm}` : '—'}</strong>
                       </div>
                       <div>
                         <span style={{ color: 'var(--text-muted)' }}>Leg: </span>
@@ -706,10 +695,6 @@ export function ClientProgressTracker({ measurements }: Props) {
                       <div>
                         <span style={{ color: 'var(--text-muted)' }}>Calf: </span>
                         <strong>{m.calf_cm != null ? `${m.calf_cm}` : '—'}</strong>
-                      </div>
-                      <div>
-                        <span style={{ color: 'var(--text-muted)' }}>Back: </span>
-                        <strong>{m.back_cm != null ? `${m.back_cm}` : '—'}</strong>
                       </div>
                     </div>
                   </div>

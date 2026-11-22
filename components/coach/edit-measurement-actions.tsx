@@ -13,6 +13,8 @@ interface Measurement {
   waist_cm: number | null
   thigh_cm: number | null
   calf_cm?: number | null
+  upper_abs_cm?: number | null
+  lower_abs_cm?: number | null
   back_cm?: number | null
   upper_body_cm?: number | null
   lower_body_cm?: number | null
@@ -94,45 +96,34 @@ export function EditMeasurementActions({ m, clientId }: { m: Measurement; client
 
             <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
               <div className="form-group">
+                <label>Upper Abs (cm)</label>
+                <input name="upperAbsCm" type="number" step="0.1" defaultValue={m.upper_abs_cm ?? m.waist_cm ?? ''} placeholder="—" />
+              </div>
+              <div className="form-group">
+                <label>Lower Abs (cm)</label>
+                <input name="lowerAbsCm" type="number" step="0.1" defaultValue={m.lower_abs_cm ?? ''} placeholder="—" />
+              </div>
+            </div>
+
+            <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
+              <div className="form-group">
                 <label>Glutes (cm)</label>
                 <input name="glutesCm" type="number" step="0.1" defaultValue={m.hips_cm ?? ''} placeholder="—" />
               </div>
               <div className="form-group">
-                <label>Abs (cm)</label>
-                <input name="absCm" type="number" step="0.1" defaultValue={m.waist_cm ?? ''} placeholder="—" />
+                <label>Leg (cm)</label>
+                <input name="legCm" type="number" step="0.1" defaultValue={m.thigh_cm ?? ''} placeholder="—" />
               </div>
             </div>
 
             <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
-              <div className="form-group">
-                <label>Leg (cm)</label>
-                <input name="legCm" type="number" step="0.1" defaultValue={m.thigh_cm ?? ''} placeholder="—" />
-              </div>
               <div className="form-group">
                 <label>Calf (cm)</label>
                 <input name="calfCm" type="number" step="0.1" defaultValue={m.calf_cm ?? ''} placeholder="—" />
               </div>
-            </div>
-
-            <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
-              <div className="form-group">
-                <label>Back (cm)</label>
-                <input name="backCm" type="number" step="0.1" defaultValue={m.back_cm ?? ''} placeholder="—" />
-              </div>
               <div className="form-group">
                 <label>Weight (kg)</label>
                 <input name="weightKg" type="number" step="0.1" defaultValue={m.weight_kg ?? ''} placeholder="—" />
-              </div>
-            </div>
-
-            <div className="form-row-2col" style={{ marginBottom: 'var(--space-3)' }}>
-              <div className="form-group">
-                <label>Upper Body (cm)</label>
-                <input name="upperBodyCm" type="number" step="0.1" defaultValue={m.upper_body_cm ?? ''} placeholder="—" />
-              </div>
-              <div className="form-group">
-                <label>Lower Body (cm)</label>
-                <input name="lowerBodyCm" type="number" step="0.1" defaultValue={m.lower_body_cm ?? ''} placeholder="—" />
               </div>
             </div>
 

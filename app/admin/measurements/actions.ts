@@ -27,11 +27,11 @@ export async function adminAddMeasurement(formData: FormData) {
     muscle_mass_kg: parseNum(formData.get('muscle_mass_kg')),
     chest_cm: parseNum(formData.get('chest_cm')),
     arm_cm: parseNum(formData.get('arm_cm')),
-    waist_cm: parseNum(formData.get('waist_cm')),
+    waist_cm: parseNum(formData.get('upper_abs_cm')) ?? parseNum(formData.get('waist_cm')),
+    upper_abs_cm: parseNum(formData.get('upper_abs_cm')),
+    lower_abs_cm: parseNum(formData.get('lower_abs_cm')),
     hips_cm: parseNum(formData.get('hips_cm')),
     thigh_cm: parseNum(formData.get('thigh_cm')),
-    upper_body_cm: parseNum(formData.get('upper_body_cm')),
-    lower_body_cm: parseNum(formData.get('lower_body_cm')),
     notes: (formData.get('notes') as string) || null,
   })
 

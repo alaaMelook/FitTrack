@@ -185,12 +185,12 @@ export default async function AdminMeasurementsPage({
                 <input type="number" step="0.1" name="thigh_cm" />
               </div>
               <div className="form-group">
-                <label>Upper Body (cm)</label>
-                <input type="number" step="0.1" name="upper_body_cm" />
+                <label>Upper Abs (cm)</label>
+                <input type="number" step="0.1" name="upper_abs_cm" placeholder="e.g. 74.0" />
               </div>
               <div className="form-group">
-                <label>Lower Body (cm)</label>
-                <input type="number" step="0.1" name="lower_body_cm" />
+                <label>Lower Abs (cm)</label>
+                <input type="number" step="0.1" name="lower_abs_cm" placeholder="e.g. 78.0" />
               </div>
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label>Notes</label>
@@ -257,11 +257,10 @@ export default async function AdminMeasurementsPage({
                 <th>Muscle Mass</th>
                 <th>Chest</th>
                 <th>Arm</th>
-                <th>Waist</th>
+                <th>Upper Abs</th>
+                <th>Lower Abs</th>
                 <th>Hips/Glutes</th>
                 <th>Thigh</th>
-                <th>Upper Body</th>
-                <th>Lower Body</th>
                 <th>Notes</th>
                 <th>Recorded By</th>
                 <th></th>
@@ -283,11 +282,10 @@ export default async function AdminMeasurementsPage({
                     <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.muscle_mass_kg, ' kg')}</td>
                     <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.chest_cm, ' cm')}</td>
                     <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.arm_cm, ' cm')}</td>
-                    <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.waist_cm, ' cm')}</td>
+                    <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.upper_abs_cm ?? m.waist_cm, ' cm')}</td>
+                    <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.lower_abs_cm, ' cm')}</td>
                     <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.hips_cm, ' cm')}</td>
                     <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.thigh_cm, ' cm')}</td>
-                    <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.upper_body_cm, ' cm')}</td>
-                    <td style={{ fontSize: 'var(--text-sm)' }}>{fmt(m.lower_body_cm, ' cm')}</td>
                     <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {m.notes || '—'}
                     </td>

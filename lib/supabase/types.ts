@@ -327,6 +327,8 @@ export type Database = {
           thigh_cm: number | null
           arm_cm: number | null
           calf_cm?: number | null
+          upper_abs_cm?: number | null
+          lower_abs_cm?: number | null
           back_cm?: number | null
           upper_body_cm?: number | null
           lower_body_cm?: number | null
@@ -347,6 +349,8 @@ export type Database = {
           thigh_cm?: number | null
           arm_cm?: number | null
           calf_cm?: number | null
+          upper_abs_cm?: number | null
+          lower_abs_cm?: number | null
           back_cm?: number | null
           upper_body_cm?: number | null
           lower_body_cm?: number | null
@@ -364,6 +368,8 @@ export type Database = {
           thigh_cm?: number | null
           arm_cm?: number | null
           calf_cm?: number | null
+          upper_abs_cm?: number | null
+          lower_abs_cm?: number | null
           back_cm?: number | null
           upper_body_cm?: number | null
           lower_body_cm?: number | null

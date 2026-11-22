@@ -185,11 +185,10 @@ export default async function CoachMeasurementsPage({
                   <th>Muscle</th>
                   <th>Chest</th>
                   <th>Arm</th>
-                  <th>Waist (Abs)</th>
-                  <th>Hips (Glutes)</th>
+                  <th>Upper Abs</th>
+                  <th>Lower Abs</th>
+                  <th>Glutes</th>
                   <th>Thigh</th>
-                  <th>Upper Body</th>
-                  <th>Lower Body</th>
                   <th>Notes</th>
                   <th>Action</th>
                 </tr>
@@ -204,11 +203,10 @@ export default async function CoachMeasurementsPage({
                     <td>{fmt(m.muscle_mass_kg, ' kg')}</td>
                     <td>{fmt(m.chest_cm, ' cm')}</td>
                     <td>{fmt(m.arm_cm, ' cm')}</td>
-                    <td>{fmt(m.waist_cm, ' cm')}</td>
+                    <td>{fmt(m.upper_abs_cm ?? m.waist_cm, ' cm')}</td>
+                    <td>{fmt(m.lower_abs_cm, ' cm')}</td>
                     <td>{fmt(m.hips_cm, ' cm')}</td>
                     <td>{fmt(m.thigh_cm, ' cm')}</td>
-                    <td>{fmt(m.upper_body_cm, ' cm')}</td>
-                    <td>{fmt(m.lower_body_cm, ' cm')}</td>
                     <td style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', maxWidth: 160 }} className="truncate" title={m.notes ?? ''}>
                       {m.notes || '—'}
                     </td>
