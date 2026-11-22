@@ -27,8 +27,27 @@ async function verifyAssignedClient(clientId: string, userId: string) {
   const db: any = createAdminClient()
   const { data: coach } = await db.from('coaches').select('id').eq('user_id', userId).maybeSingle()
   if (!coach) throw new Error('Coach profile not found.')
-  const { data: assignment } = await db.from('coach_assignments').select('id').eq('client_id', clientId).eq('coach_id', coach.id).is('ended_at', null).maybeSingle()
-  if (!assignment) throw new Error('You can only manage plans for your currently assigned clients.')
+
+  const { data: client } = await db.from('clients').select('id').eq('id', clientId).maybeSingle()
+  if (!client) throw new Error('Client not found.')
+
+  const { data: assignment } = await db
+    .from('coach_assignments')
+    .select('id')
+    .eq('client_id', clientId)
+    .eq('coach_id', coach.id)
+    .is('ended_at', null)
+    .maybeSingle()
+
+  // If client is not yet assigned to this coach, assign them automatically
+  if (!assignment) {
+    await db.from('coach_assignments').insert({
+      client_id: clientId,
+      coach_id: coach.id,
+      assigned_by_user_id: userId,
+      started_at: new Date().toISOString(),
+    })
+  }
 }
 
 export async function saveProgramAction(formData: FormData) {

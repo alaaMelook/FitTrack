@@ -25,25 +25,34 @@ export default async function CoachProgramsPage({
   // 1. Get coach profile
   const { data: coach } = await db.from('coaches').select('id').eq('user_id', session.id).maybeSingle()
 
-  // 2. Get coach's assigned clients
-  const { data: assignments } = coach
-    ? await db
-        .from('coach_assignments')
-        .select('client_id, clients(id, users(full_name, email))')
-        .eq('coach_id', coach.id)
-        .is('ended_at', null)
-    : { data: [] }
+  // 2. Fetch clients (both assigned clients and all gym clients available for plan assignment)
+  const [{ data: assignments }, { data: allClients }] = await Promise.all([
+    coach
+      ? db
+          .from('coach_assignments')
+          .select('client_id')
+          .eq('coach_id', coach.id)
+          .is('ended_at', null)
+      : Promise.resolve({ data: [] }),
+    db
+      .from('clients')
+      .select('id, user_id, users(full_name, email)')
+      .order('created_at', { ascending: false }),
+  ])
 
-  const clientList = (assignments ?? [])
-    .map((a: any) => {
-      const rawName = a.clients?.users?.full_name?.trim()
-      const email = a.clients?.users?.email || ''
-      const name = (!rawName || rawName === 'false' || rawName === 'null')
+  const assignedClientIds = new Set((assignments ?? []).map((a: any) => a.client_id))
+
+  const clientList = (allClients ?? [])
+    .map((c: any) => {
+      const rawName = c.users?.full_name?.trim()
+      const email = c.users?.email || ''
+      const baseName = (!rawName || rawName === 'false' || rawName === 'null')
         ? (email ? email.split('@')[0] : 'Client')
         : rawName
+      const isAssigned = assignedClientIds.has(c.id)
       return {
-        id: a.clients?.id,
-        name,
+        id: c.id,
+        name: isAssigned ? `${baseName} (Assigned)` : baseName,
         email,
       }
     })
