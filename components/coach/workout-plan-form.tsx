@@ -376,21 +376,21 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
         <div style={{ marginBottom: '0.6rem' }}>
           <label style={{ fontWeight: 700, fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Calendar size={16} style={{ color: 'var(--brand-600)' }} />
-            <span>Plan Duration / مدة الخطة *</span>
+            <span>Plan Duration *</span>
             <span className="text-secondary text-xs" style={{ fontWeight: 400 }}>
-              (Choose the cycle timeframe: weekly, monthly, 2 months, etc.)
+              (Select timeframe: weekly split, monthly cycle, 2 months, etc.)
             </span>
           </label>
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[
-            { id: '1_week', label: '1 Week (Weekly Split) / أسبوع' },
-            { id: '2_weeks', label: '2 Weeks / أسبوعين' },
-            { id: '1_month', label: '1 Month (4 Weeks) / شهر' },
-            { id: '2_months', label: '2 Months (8 Weeks) / شهرين' },
-            { id: '3_months', label: '3 Months (12 Weeks) / 3 شهور' },
-            { id: 'ongoing', label: 'Custom / Ongoing / مستمر' },
+            { id: '1_week', label: '1 Week Split' },
+            { id: '2_weeks', label: '2 Weeks Split' },
+            { id: '1_month', label: '1 Month (4 Weeks)' },
+            { id: '2_months', label: '2 Months (8 Weeks)' },
+            { id: '3_months', label: '3 Months (12 Weeks)' },
+            { id: 'ongoing', label: 'Custom / Ongoing' },
           ].map((item) => {
             const isSelected = planDuration === item.id
             return (
@@ -617,7 +617,7 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
                     background: isSelected ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)',
                   }}
                 >
-                  {isRest ? 'راحه (Rest)' : `${dayItem.exercises.length} تمرين`}
+                  {isRest ? 'Rest' : `${dayItem.exercises.length} Ex`}
                 </span>
               </button>
             )
@@ -766,7 +766,7 @@ function DayEditorCard({
           {/* Day Label (e.g. Day 1, Monday) */}
           <div>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 4 }}>
-              رقم اليوم (Day Label)
+              Day Label
             </span>
             <input
               type="text"
@@ -789,13 +789,13 @@ function DayEditorCard({
           {/* Workout / Muscle Focus (e.g. Chest & Triceps) */}
           <div>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 4 }}>
-              تركيز اليوم / العضلات المستهدفة
+              Focus / Muscle Groups
             </span>
             <input
               type="text"
               value={dayPlan.workout}
               onChange={(e) => onUpdateDay(dayIdx, 'workout', e.target.value)}
-              placeholder="e.g. Chest & Triceps (صدر وترايسبس)"
+              placeholder="e.g. Chest & Triceps"
               disabled={dayPlan.restDay}
               style={{
                 fontSize: '15px',
@@ -835,11 +835,11 @@ function DayEditorCard({
                   const isRest = e.target.checked
                   onUpdateDay(dayIdx, 'restDay', isRest)
                   if (isRest) {
-                    onUpdateDay(dayIdx, 'workout', 'Rest & Recovery / يوم راحة')
+                    onUpdateDay(dayIdx, 'workout', 'Rest & Recovery')
                   }
                 }}
               />
-              <span>{dayPlan.restDay ? '✓ يوم راحة (Rest Day)' : 'تحديد كيوم راحة'}</span>
+              <span>{dayPlan.restDay ? '✓ Rest Day' : 'Mark as Rest Day'}</span>
             </label>
           </div>
         </div>
@@ -884,7 +884,7 @@ function DayEditorCard({
                 borderRadius: '8px',
               }}
             >
-              <Plus size={15} /> إضافة تمرين
+              <Plus size={15} /> Add Exercise
             </button>
           )}
 
@@ -903,13 +903,13 @@ function DayEditorCard({
       {/* Day Instructions / Notes */}
       <div style={{ marginBottom: dayPlan.restDay ? 0 : 20 }}>
         <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: 4 }}>
-          ملاحظات وتعليمات اليوم (Instructions for this day)
+          Routine Notes & Guidelines
         </label>
         <input
           type="text"
           value={dayPlan.notes}
           onChange={(e) => onUpdateDay(dayIdx, 'notes', e.target.value)}
-          placeholder="مثلاً: إحماء ديناميكي 10 دقائق، الراحة بين الجولات 90 ثانية، التركيز على المدى الحركي الكامل"
+          placeholder="e.g. 10m dynamic warm-up, 90s rest between sets, maintain strict form"
           style={{
             width: '100%',
             fontSize: '14px',
@@ -969,7 +969,7 @@ function DayEditorCard({
                     {exIdx + 1}
                   </span>
                   <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
-                    تمرين #{exIdx + 1}
+                    Exercise #{exIdx + 1}
                   </span>
                   {ex.name && (
                     <span
@@ -1013,7 +1013,7 @@ function DayEditorCard({
                   {/* Move to another day */}
                   {allDays.length > 1 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>نقل إلى:</span>
+                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Move to:</span>
                       <select
                         value={dayIdx}
                         onChange={(e) => onMoveExerciseToDay(dayIdx, exIdx, Number(e.target.value))}
@@ -1056,7 +1056,7 @@ function DayEditorCard({
                     }}
                     title="Remove exercise"
                   >
-                    <Trash2 size={13} /> حذف
+                    <Trash2 size={13} /> Remove
                   </button>
                 </div>
               </div>
@@ -1065,14 +1065,14 @@ function DayEditorCard({
               <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 14 }}>
                 <div>
                   <span style={{ fontSize: '13px', color: '#0f172a', display: 'block', fontWeight: 700, marginBottom: 4 }}>
-                    اسم التمرين (Exercise Name) *
+                    Exercise Name *
                   </span>
                   <input
                     type="text"
                     list="exercise-library-datalist"
                     value={ex.name}
                     onChange={(e) => onSelectExercise(dayIdx, exIdx, e.target.value)}
-                    placeholder="اختر من المكتبة أو اكتب اسم التمرين..."
+                    placeholder="Select from library or enter custom name..."
                     required
                     style={{
                       width: '100%',
@@ -1089,7 +1089,7 @@ function DayEditorCard({
 
                 <div>
                   <span style={{ fontSize: '13px', color: '#0f172a', display: 'block', fontWeight: 700, marginBottom: 4 }}>
-                    العضلة المستهدفة (Muscle Group)
+                    Target Muscle Group
                   </span>
                   <input
                     type="text"
@@ -1124,7 +1124,7 @@ function DayEditorCard({
               >
                 <div>
                   <span style={{ fontSize: '12px', color: '#7c3aed', display: 'block', fontWeight: 800, marginBottom: 4 }}>
-                    SETS (المجموعات) *
+                    SETS *
                   </span>
                   <input
                     type="number"
@@ -1148,13 +1148,13 @@ function DayEditorCard({
 
                 <div>
                   <span style={{ fontSize: '12px', color: '#2563eb', display: 'block', fontWeight: 800, marginBottom: 4 }}>
-                    REPS (العدات) *
+                    REPS *
                   </span>
                   <input
                     type="text"
                     value={ex.reps}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'reps', e.target.value)}
-                    placeholder="e.g. 10-12 أو فشل عضلي"
+                    placeholder="e.g. 10-12 or failure"
                     style={{
                       width: '100%',
                       fontSize: '14px',
@@ -1170,13 +1170,13 @@ function DayEditorCard({
 
                 <div>
                   <span style={{ fontSize: '12px', color: '#059669', display: 'block', fontWeight: 800, marginBottom: 4 }}>
-                    WEIGHT (الوزن)
+                    WEIGHT
                   </span>
                   <input
                     type="text"
                     value={ex.weight}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'weight', e.target.value)}
-                    placeholder="e.g. 20kg أو وزن الجسم"
+                    placeholder="e.g. 20kg or Bodyweight"
                     style={{
                       width: '100%',
                       fontSize: '14px',
@@ -1192,7 +1192,7 @@ function DayEditorCard({
 
                 <div>
                   <span style={{ fontSize: '12px', color: '#d97706', display: 'block', fontWeight: 800, marginBottom: 4 }}>
-                    REST (الراحة بالثواني)
+                    REST (Seconds)
                   </span>
                   <input
                     type="number"
@@ -1220,13 +1220,13 @@ function DayEditorCard({
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
                 <div>
                   <span style={{ fontSize: '12px', color: '#475569', display: 'block', fontWeight: 700, marginBottom: 4 }}>
-                    تكنيك وتعليمات التمرين (Form Cues & Instructions)
+                    Technique & Form Cues
                   </span>
                   <input
                     type="text"
                     value={ex.instructions}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'instructions', e.target.value)}
-                    placeholder="مثلاً: نزول بطيء في 3 ثوان، ثبات ثانية في القاع، الحفاظ على استقامة الظهر"
+                    placeholder="e.g. 3s eccentric tempo, 1s pause at stretch, chest up"
                     style={{
                       width: '100%',
                       fontSize: '13px',
@@ -1242,13 +1242,13 @@ function DayEditorCard({
 
                 <div>
                   <span style={{ fontSize: '12px', color: '#475569', display: 'block', fontWeight: 700, marginBottom: 4 }}>
-                    رابط فيديو التوضيح (Video Demo Link)
+                    Video Demo URL (Optional)
                   </span>
                   <input
                     type="url"
                     value={ex.videoUrl}
                     onChange={(e) => onUpdateExercise(dayIdx, exIdx, 'videoUrl', e.target.value)}
-                    placeholder="https://youtube.com/... (اختياري)"
+                    placeholder="https://youtube.com/watch?v=..."
                     style={{
                       width: '100%',
                       fontSize: '13px',
@@ -1278,7 +1278,7 @@ function DayEditorCard({
                 fontWeight: 600,
               }}
             >
-              لم تتم إضافة أي تمارين لهذا اليوم بعد. اضغط على زر &quot;إضافة تمرين&quot; بالأعلى للبدء.
+              No exercises added to this routine yet. Click &quot;Add Exercise&quot; above to begin.
             </div>
           )}
         </div>

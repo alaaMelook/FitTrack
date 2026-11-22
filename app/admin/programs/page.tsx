@@ -33,7 +33,7 @@ function countWorkoutDays(schedule: unknown): { total: number; workout: number; 
   if (!Array.isArray(schedule)) return { total: 0, workout: 0, rest: 0 }
   const total = schedule.length
   const rest = schedule.filter(
-    (d: any) => d?.type === 'rest' || d?.rest === true || d?.is_rest === true,
+    (d: any) => d?.type === 'rest' || d?.rest === true || d?.is_rest === true || d?.restDay === true,
   ).length
   return { total, workout: total - rest, rest }
 }
