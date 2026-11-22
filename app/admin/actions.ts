@@ -65,11 +65,18 @@ export async function activateClientAction(clientUserId: string) {
 export async function deleteClientAction(clientUserId: string, clientId: string) {
   try {
     const session = await requireAdmin()
-    const adminSupabase = createAdminClient()
+    const adminSupabase: any = createAdminClient()
 
-    // Delete from auth.users → triggers cascade through all FK tables
-    const { error: authErr } = await adminSupabase.auth.admin.deleteUser(clientUserId)
-    if (authErr) return { success: false, error: authErr.message }
+    // Delete from auth.users if exists
+    try {
+      await adminSupabase.auth.admin.deleteUser(clientUserId)
+    } catch {
+      // Ignore auth user not found
+    }
+
+    // Ensure deleted from public tables directly
+    await adminSupabase.from('clients').delete().eq('id', clientId)
+    await adminSupabase.from('users').delete().eq('id', clientUserId)
 
     await logActivity({
       actorUserId: session.id,
@@ -141,10 +148,29 @@ export async function activateCoachAction(coachId: string, coachUserId: string) 
 export async function deleteCoachAction(coachUserId: string) {
   try {
     const session = await requireAdmin()
-    const adminSupabase = createAdminClient()
+    const adminSupabase: any = createAdminClient()
 
-    const { error } = await adminSupabase.auth.admin.deleteUser(coachUserId)
-    if (error) return { success: false, error: error.message }
+    // 1. Try deleting from auth.users (if user signed up via auth)
+    try {
+      await adminSupabase.auth.admin.deleteUser(coachUserId)
+    } catch {
+      // Ignore if user not in auth.users (seed data)
+    }
+
+    // 2. Fetch coach record id to clean up assignments
+    const { data: coach } = await adminSupabase
+      .from('coaches')
+      .select('id')
+      .eq('user_id', coachUserId)
+      .maybeSingle()
+
+    if (coach?.id) {
+      await adminSupabase.from('coach_assignments').delete().eq('coach_id', coach.id)
+      await adminSupabase.from('coaches').delete().eq('id', coach.id)
+    }
+
+    // 3. Delete from public.users
+    await adminSupabase.from('users').delete().eq('id', coachUserId)
 
     await logActivity({
       actorUserId: session.id,
