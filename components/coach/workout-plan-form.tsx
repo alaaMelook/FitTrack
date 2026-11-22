@@ -1099,7 +1099,7 @@ function DayEditorCard({
               </div>
 
               {/* Row 1: Exercise Name (Library Autocomplete) & Muscle Group */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
                 <div>
                   <span style={{ fontSize: '13px', color: '#0f172a', display: 'block', fontWeight: 700, marginBottom: 4 }}>
                     Exercise Name *
@@ -1151,7 +1151,7 @@ function DayEditorCard({
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(105px, 1fr))',
                   gap: 12,
                   background: '#f8fafc',
                   padding: '12px 14px',

@@ -16,6 +16,9 @@ import {
   Shield,
   HeartPulse,
   Flame,
+  Salad,
+  CalendarDays,
+  Ruler,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
@@ -28,7 +31,7 @@ export function MobileShell({ sidebar, children }: MobileShellProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
-  // Close sidebar on route change (mobile nav after tap)
+  // Close sidebar on route change
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
@@ -43,13 +46,16 @@ export function MobileShell({ sidebar, children }: MobileShellProps) {
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  // Determine portal role & icon for header and bottom navigation
-  const isAdmin = pathname.startsWith('/admin')
+  const isAdmin  = pathname.startsWith('/admin')
   const isClient = pathname.startsWith('/client')
-  const isCoach = pathname.startsWith('/coach')
+  const isCoach  = pathname.startsWith('/coach')
 
   const roleLabel = isAdmin ? 'Admin' : isClient ? 'Member' : isCoach ? 'Coach' : 'FitTrack'
-  const RoleIcon = isAdmin ? Shield : isClient ? HeartPulse : isCoach ? Flame : Dumbbell
+  const RoleIcon  = isAdmin ? Shield : isClient ? HeartPulse : isCoach ? Flame : Dumbbell
+
+  // ── Helper: active class ──────────────────────────────────────────────────
+  const active = (href: string, exact = false) =>
+    exact ? pathname === href : pathname.startsWith(href)
 
   return (
     <div className="app-shell">
@@ -69,7 +75,8 @@ export function MobileShell({ sidebar, children }: MobileShellProps) {
 
       {/* ── Main Content ── */}
       <main className="main-content">
-        {/* Mobile top bar */}
+
+        {/* ─── Mobile Top Bar ────────────────────────────────────────────── */}
         <header className="mobile-topbar">
           <button
             className="menu-toggle"
@@ -106,6 +113,7 @@ export function MobileShell({ sidebar, children }: MobileShellProps) {
             </div>
           </div>
 
+          {/* Online dot */}
           <div style={{ width: 42, display: 'flex', justifyContent: 'flex-end' }}>
             <span
               style={{
@@ -122,114 +130,92 @@ export function MobileShell({ sidebar, children }: MobileShellProps) {
 
         {children}
 
-        {/* ── Mobile Bottom Navigation Bar ── */}
+        {/* ─────────────────────────── ADMIN BOTTOM NAV ───────────────────── */}
         {isAdmin && (
           <nav className="mobile-bottom-nav" aria-label="Admin quick navigation">
-            <Link
-              href="/admin/dashboard"
-              className={`mobile-nav-item ${pathname === '/admin/dashboard' ? 'active' : ''}`}
-            >
-              <LayoutDashboard size={20} />
-              <span>Dashboard</span>
-            </Link>
-            <Link
-              href="/admin/clients"
-              className={`mobile-nav-item ${pathname.startsWith('/admin/clients') ? 'active' : ''}`}
-            >
-              <Users size={20} />
-              <span>Clients</span>
-            </Link>
-            <Link
-              href="/admin/coaches"
-              className={`mobile-nav-item ${pathname.startsWith('/admin/coaches') ? 'active' : ''}`}
-            >
-              <UserCheck size={20} />
-              <span>Coaches</span>
-            </Link>
-            <Link
-              href="/admin/memberships"
-              className={`mobile-nav-item ${pathname.startsWith('/admin/memberships') ? 'active' : ''}`}
-            >
-              <CreditCard size={20} />
-              <span>Members</span>
-            </Link>
-            <Link
-              href="/admin/change-requests"
-              className={`mobile-nav-item ${pathname.startsWith('/admin/change-requests') ? 'active' : ''}`}
-            >
-              <RefreshCw size={20} />
-              <span>Requests</span>
-            </Link>
+            <MobileNavItem href="/admin/dashboard" label="Home" icon={<LayoutDashboard size={21} />} isActive={active('/admin/dashboard', true)} />
+            <MobileNavItem href="/admin/clients"   label="Clients" icon={<Users size={21} />} isActive={active('/admin/clients')} />
+            <MobileNavItem href="/admin/coaches"   label="Coaches" icon={<UserCheck size={21} />} isActive={active('/admin/coaches')} />
+            <MobileNavItem href="/admin/memberships" label="Members" icon={<CreditCard size={21} />} isActive={active('/admin/memberships')} />
+            <MobileNavItem href="/admin/change-requests" label="Requests" icon={<RefreshCw size={21} />} isActive={active('/admin/change-requests')} />
           </nav>
         )}
 
+        {/* ─────────────────────────── CLIENT BOTTOM NAV ──────────────────── */}
         {isClient && (
           <nav className="mobile-bottom-nav" aria-label="Client quick navigation">
-            <Link
-              href="/client/dashboard"
-              className={`mobile-nav-item ${pathname === '/client/dashboard' ? 'active' : ''}`}
-            >
-              <LayoutDashboard size={20} />
-              <span>Home</span>
-            </Link>
-            <Link
-              href="/client/my-progress"
-              className={`mobile-nav-item ${pathname.startsWith('/client/my-progress') ? 'active' : ''}`}
-            >
-              <TrendingUp size={20} />
-              <span>Progress</span>
-            </Link>
-            <Link
-              href="/client/my-membership"
-              className={`mobile-nav-item ${pathname.startsWith('/client/my-membership') ? 'active' : ''}`}
-            >
-              <CreditCard size={20} />
-              <span>Plan</span>
-            </Link>
-            <Link
-              href="/client/my-coach"
-              className={`mobile-nav-item ${pathname.startsWith('/client/my-coach') ? 'active' : ''}`}
-            >
-              <UserCheck size={20} />
-              <span>Coach</span>
-            </Link>
+            <MobileNavItem href="/client/dashboard"     label="Home"     icon={<LayoutDashboard size={21} />} isActive={active('/client/dashboard', true)} />
+            <MobileNavItem href="/client/my-progress"   label="Progress" icon={<TrendingUp size={21} />}      isActive={active('/client/my-progress')} />
+            <MobileNavItem href="/client/nutrition"     label="Nutrition" icon={<Salad size={21} />}          isActive={active('/client/nutrition')} />
+            <MobileNavItem href="/client/workouts"      label="Workouts" icon={<Dumbbell size={21} />}        isActive={active('/client/workouts')} />
+            <MobileNavItem href="/client/my-coach"      label="Coach"    icon={<UserCheck size={21} />}       isActive={active('/client/my-coach')} />
           </nav>
         )}
 
+        {/* ─────────────────────────── COACH BOTTOM NAV ───────────────────── */}
         {isCoach && (
           <nav className="mobile-bottom-nav" aria-label="Coach quick navigation">
-            <Link
-              href="/coach/dashboard"
-              className={`mobile-nav-item ${pathname === '/coach/dashboard' ? 'active' : ''}`}
-            >
-              <LayoutDashboard size={20} />
-              <span>Home</span>
-            </Link>
-            <Link
-              href="/coach/my-clients"
-              className={`mobile-nav-item ${pathname.startsWith('/coach/my-clients') ? 'active' : ''}`}
-            >
-              <Users size={20} />
-              <span>Clients</span>
-            </Link>
-            <Link
-              href="/coach/requests"
-              className={`mobile-nav-item ${pathname.startsWith('/coach/requests') ? 'active' : ''}`}
-            >
-              <UserCheck size={20} />
-              <span>Requests</span>
-            </Link>
-            <Link
-              href="/coach/profile"
-              className={`mobile-nav-item ${pathname.startsWith('/coach/profile') ? 'active' : ''}`}
-            >
-              <User size={20} />
-              <span>Profile</span>
-            </Link>
+            <MobileNavItem href="/coach/dashboard"       label="Home"      icon={<LayoutDashboard size={21} />} isActive={active('/coach/dashboard', true)} />
+            <MobileNavItem href="/coach/my-clients"      label="Clients"   icon={<Users size={21} />}            isActive={active('/coach/my-clients')} />
+            <MobileNavItem href="/coach/programs"        label="Plans"     icon={<Salad size={21} />}            isActive={active('/coach/programs')} />
+            <MobileNavItem href="/coach/workout-planner" label="Workouts"  icon={<CalendarDays size={21} />}     isActive={active('/coach/workout-planner')} />
+            <MobileNavItem href="/coach/measurements"    label="Measures"  icon={<Ruler size={21} />}            isActive={active('/coach/measurements')} />
           </nav>
         )}
+
       </main>
     </div>
   )
 }
 
+// ── Reusable mobile nav item with pill indicator ──────────────────────────────
+function MobileNavItem({
+  href,
+  label,
+  icon,
+  isActive,
+}: {
+  href: string
+  label: string
+  icon: React.ReactNode
+  isActive: boolean
+}) {
+  return (
+    <Link
+      href={href}
+      className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+      style={{ position: 'relative' }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 44,
+          height: 32,
+          borderRadius: 20,
+          background: isActive ? 'rgba(140, 86, 212, 0.14)' : 'transparent',
+          transition: 'background 0.18s',
+        }}
+      >
+        {icon}
+        {isActive && (
+          <span
+            style={{
+              position: 'absolute',
+              bottom: -2,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 4,
+              height: 4,
+              borderRadius: '50%',
+              background: 'var(--brand-600)',
+            }}
+          />
+        )}
+      </div>
+      <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 600 }}>{label}</span>
+    </Link>
+  )
+}

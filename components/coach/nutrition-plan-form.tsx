@@ -522,7 +522,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                       <div
                         style={{
                           display: 'grid',
-                          gridTemplateColumns: '1.5fr 1fr',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                           gap: '10px',
                           marginBottom: 8,
                         }}
@@ -558,7 +558,7 @@ export default function NutritionPlanForm({ clients, existingPlans = [], initial
                       <div
                         style={{
                           display: 'grid',
-                          gridTemplateColumns: 'repeat(4, 1fr)',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(105px, 1fr))',
                           gap: '8px',
                         }}
                       >

@@ -57,7 +57,7 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
         const hasMacroTargets = totals.calories > 0 || totals.protein > 0 || totals.carbs > 0 || totals.fats > 0
 
         return (
-          <article className="card" key={plan.id} style={{ padding: '24px', borderRadius: '16px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+          <article className="card" key={plan.id} style={{ borderRadius: '16px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             {/* Plan Header */}
             <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12, marginBottom: '1.25rem' }}>
               <div>
@@ -158,7 +158,7 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
 
             {/* Daily Macro Targets — Only displayed if macro targets are specified */}
             {hasMacroTargets && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: '1.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10, marginBottom: '1.75rem' }}>
                 <div style={{ background: '#fffbeb', padding: '14px 16px', borderRadius: '12px', border: '1px solid #fde68a', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(217, 119, 6, 0.15)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Flame size={20} />
@@ -474,7 +474,7 @@ function SingleWorkoutScheduleCard({ plan }: { plan: any }) {
       : null
 
   return (
-    <article className="card" style={{ padding: '24px', borderRadius: '16px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+    <article className="card" style={{ borderRadius: '16px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
       {/* Plan Header */}
       <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12, marginBottom: '1.25rem' }}>
         <div>
@@ -557,7 +557,7 @@ function SingleWorkoutScheduleCard({ plan }: { plan: any }) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: `repeat(auto-fit, minmax(130px, 1fr))`,
+              gridTemplateColumns: `repeat(auto-fit, minmax(115px, 1fr))`,
               gap: '10px',
             }}
           >
@@ -825,7 +825,7 @@ function SingleWorkoutScheduleCard({ plan }: { plan: any }) {
                     <div
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
                         gap: 8,
                         background: '#f8fafc',
                         padding: '10px 14px',

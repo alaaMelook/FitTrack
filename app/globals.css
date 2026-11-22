@@ -1045,16 +1045,17 @@ dialog::backdrop {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 64px;
-    background: rgba(255, 255, 255, 0.97);
-    backdrop-filter: blur(16px);
-    border-top: 1px solid var(--border-default);
+    height: 70px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1.5px solid var(--border-default);
     z-index: 44;
-    padding: 0 var(--space-2);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding: 0 var(--space-1);
+    padding-bottom: env(safe-area-inset-bottom, 4px);
     align-items: center;
     justify-content: space-around;
-    box-shadow: 0 -4px 20px rgba(140, 86, 212, 0.1);
+    box-shadow: 0 -2px 24px rgba(140, 86, 212, 0.12), 0 -1px 6px rgba(0,0,0,0.04);
   }
 
   .mobile-nav-item {
@@ -1062,17 +1063,18 @@ dialog::backdrop {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    color: var(--text-muted);
-    font-size: 11px;
+    gap: 2px;
+    color: #8a8a9a;
+    font-size: 10px;
     font-weight: 600;
     text-decoration: none;
-    padding: 6px 4px;
+    padding: 4px 2px;
     border-radius: var(--radius-md);
-    transition: color 0.15s, transform 0.15s;
+    transition: color 0.15s;
     flex: 1;
-    max-width: 75px;
+    max-width: 72px;
     text-align: center;
+    min-width: 0;
   }
 
   .mobile-nav-item.active {
@@ -1084,9 +1086,14 @@ dialog::backdrop {
     color: var(--brand-600);
   }
 
+  .mobile-nav-item:active {
+    transform: scale(0.94);
+  }
+
   /* Page body padding */
   .page-body {
     padding: var(--space-4) var(--space-3);
+    padding-bottom: calc(70px + var(--space-4));
   }
 
   /* Grids collapse gracefully */
