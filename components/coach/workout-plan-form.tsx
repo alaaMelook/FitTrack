@@ -138,6 +138,7 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
       const newDay = createDay(`Day ${prev.length + 1}`, 'New Workout Routine', false)
       const next = [...prev, newDay]
       setActiveDayIdx(next.length - 1)
+      setViewMode('single')
       return next
     })
   }
@@ -552,21 +553,33 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={addDay}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '12px' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#6d28d9',
+                background: '#f5f3ff',
+                border: '1px solid #ddd6fe',
+                borderRadius: '8px',
+                padding: '5px 12px',
+              }}
             >
               <Plus size={14} /> Add Day
             </button>
           </div>
         </div>
 
-        {/* Day Selector Pills */}
+        {/* Day Selector Pills — Wrappable grid so new days never get hidden */}
         <div
           style={{
             display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            paddingBottom: 10,
-            marginBottom: 'var(--space-4)',
+            flexWrap: 'wrap',
+            gap: 10,
+            alignItems: 'center',
+            padding: '4px 0',
+            marginBottom: '1.25rem',
           }}
         >
           {schedule.map((dayItem, idx) => {
@@ -582,7 +595,7 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
                   setViewMode('single')
                 }}
                 style={{
-                  padding: '8px 16px',
+                  padding: '9px 16px',
                   borderRadius: '10px',
                   border: isSelected
                     ? '2px solid #7c3aed'
@@ -598,12 +611,11 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
                   fontWeight: isSelected ? 800 : 600,
                   fontSize: '13px',
                   cursor: 'pointer',
-                  whiteSpace: 'nowrap',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
                   transition: 'all 0.15s ease',
-                  boxShadow: isSelected ? '0 3px 8px rgba(124, 58, 237, 0.25)' : 'none',
+                  boxShadow: isSelected ? '0 3px 10px rgba(124, 58, 237, 0.25)' : '0 1px 3px rgba(0,0,0,0.02)',
                 }}
               >
                 <span>{dayItem.day}</span>
@@ -612,9 +624,9 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
                     fontSize: '11px',
                     fontWeight: 700,
                     opacity: isSelected ? 0.95 : 0.75,
-                    padding: '2px 6px',
+                    padding: '2px 7px',
                     borderRadius: '6px',
-                    background: isSelected ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.06)',
+                    background: isSelected ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.06)',
                   }}
                 >
                   {isRest ? 'Rest' : `${dayItem.exercises.length} Ex`}
@@ -622,6 +634,28 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAct
               </button>
             )
           })}
+
+          {/* Inline + Add Day Pill Button */}
+          <button
+            type="button"
+            onClick={addDay}
+            style={{
+              padding: '9px 16px',
+              borderRadius: '10px',
+              border: '1.5px dashed #7c3aed',
+              background: '#f5f3ff',
+              color: '#6d28d9',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Plus size={15} /> Add Day
+          </button>
         </div>
       </div>
 
