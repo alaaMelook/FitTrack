@@ -224,12 +224,43 @@ function SingleWorkoutScheduleCard({ plan }: { plan: any }) {
   const workoutDaysCount = schedule.filter((d: any) => !d.restDay).length
   const restDaysCount = schedule.filter((d: any) => d.restDay).length
 
+  const planDurationKey = schedule[0]?.planDuration || plan.duration || null
+  const durationLabel =
+    planDurationKey === '1_week'
+      ? '1 Week Cycle'
+      : planDurationKey === '2_weeks'
+      ? '2 Weeks Cycle'
+      : planDurationKey === '1_month'
+      ? '1 Month (4 Weeks)'
+      : planDurationKey === '2_months'
+      ? '2 Months (8 Weeks)'
+      : planDurationKey === '3_months'
+      ? '3 Months (12 Weeks)'
+      : planDurationKey === 'ongoing'
+      ? 'Ongoing Plan'
+      : null
+
   return (
     <article className="card" style={{ padding: 'var(--space-6)' }}>
       {/* Plan Header */}
       <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 12, marginBottom: '1.25rem' }}>
         <div>
-          <span className="badge badge-brand" style={{ marginBottom: 6 }}>Workout Schedule</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span className="badge badge-brand">Workout Schedule</span>
+            {durationLabel && (
+              <span
+                className="badge"
+                style={{
+                  fontSize: '11px',
+                  background: 'rgba(140, 86, 212, 0.12)',
+                  color: 'var(--brand-700)',
+                  fontWeight: 600,
+                }}
+              >
+                Duration: {durationLabel}
+              </span>
+            )}
+          </div>
           <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 800 }}>{plan.title}</h2>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
             {plan.updated_at && (

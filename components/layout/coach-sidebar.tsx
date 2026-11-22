@@ -1,8 +1,17 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, UserCheck, User, LogOut, Flame, Salad, Ruler } from 'lucide-react'
+import { LayoutDashboard, Users, UserCheck, User, LogOut, Flame, Salad, Ruler, CalendarDays, BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { SessionUser } from '@/lib/auth/session'
-const navItems = [{ href: '/coach/dashboard', label: 'Dashboard', icon: LayoutDashboard },{ href: '/coach/my-clients', label: 'My Clients', icon: Users },{ href: '/coach/measurements', label: 'Measurements', icon: Ruler },{ href: '/coach/programs', label: 'Nutrition & Workouts', icon: Salad },{ href: '/coach/requests', label: 'Client Requests', icon: UserCheck },{ href: '/coach/profile', label: 'My Profile', icon: User }]
+const navItems = [
+  { href: '/coach/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/coach/my-clients', label: 'My Clients', icon: Users },
+  { href: '/coach/measurements', label: 'Measurements', icon: Ruler },
+  { href: '/coach/workout-planner', label: 'Workout Planner', icon: CalendarDays },
+  { href: '/coach/exercise-library', label: 'Exercise Library', icon: BookOpen },
+  { href: '/coach/programs', label: 'Nutrition Plans', icon: Salad },
+  { href: '/coach/requests', label: 'Client Requests', icon: UserCheck },
+  { href: '/coach/profile', label: 'My Profile', icon: User },
+]
 export function CoachSidebar({ user }: { user: SessionUser }) { const pathname = usePathname(); const router = useRouter(); const supabase = createClient(); const handleSignOut = async () => { await supabase.auth.signOut(); router.push('/login'); router.refresh() }; const initials = user.full_name ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0,2) : 'CO'; return <aside className="sidebar"><div style={{ padding: 'var(--space-6) var(--space-5)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)', borderBottom: '1px solid var(--border-subtle)' }}><div style={{ width:36,height:36,borderRadius:'var(--radius-md)',background:'linear-gradient(135deg,var(--brand-600),var(--brand-800))',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff' }}><Flame size={20}/></div><div><div style={{ fontFamily:'var(--font-display)',fontWeight:800,fontSize:'var(--text-lg)' }}>FitTrack</div><div className="text-xs" style={{color:'var(--text-accent)',fontWeight:600}}>Coach Workspace</div></div></div><nav style={{padding:'var(--space-4) var(--space-3)',flex:1}}>{navItems.map((item)=>{const Icon=item.icon;const active=pathname===item.href||(item.href!=='/coach/dashboard'&&pathname.startsWith(item.href));return<Link key={item.href} href={item.href} className={`nav-item ${active?'active':''}`}><Icon size={18}/><span>{item.label}</span></Link>})}</nav><div style={{padding:'var(--space-4)',borderTop:'1px solid var(--border-subtle)',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><strong>{user.full_name}</strong><div className="text-xs text-secondary">{user.email}</div></div><button onClick={handleSignOut} className="btn btn-ghost btn-icon"><LogOut size={18}/></button></div></aside> }

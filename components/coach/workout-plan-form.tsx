@@ -87,6 +87,7 @@ function createDay(dayLabel: string, workoutName = 'Training Session', restDay =
 type Props = {
   clients: Client[]
   exerciseLibrary?: ExerciseOption[]
+  saveAction?: (formData: FormData) => Promise<void>
   initialData?: {
     id: string
     clientId: string
@@ -96,12 +97,18 @@ type Props = {
   } | null
 }
 
-export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initialData }: Props) {
+export default function WorkoutPlanForm({ clients, exerciseLibrary = [], saveAction, initialData }: Props) {
   const [schedule, setSchedule] = useState<DayPlan[]>(() => {
     if (initialData?.schedule && initialData.schedule.length > 0) {
       return initialData.schedule
     }
     return DEFAULT_DAYS.map((d) => createDay(d.day, d.workout, d.restDay))
+  })
+
+  // Plan Duration state (1 week, 2 weeks, 1 month, 2 months, 3 months, ongoing)
+  const [planDuration, setPlanDuration] = useState<string>(() => {
+    const firstDay: any = initialData?.schedule?.[0]
+    return firstDay?.planDuration || '1_month'
   })
 
   // Selected Day tab in the editor
@@ -279,12 +286,19 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
     }
 
     const fd = new FormData(e.currentTarget)
-    fd.set('items', JSON.stringify(schedule))
+    // Tag each day with planDuration so it persists cleanly in JSONB
+    const scheduleWithDuration = schedule.map((d) => ({
+      ...d,
+      planDuration,
+    }))
+    fd.set('items', JSON.stringify(scheduleWithDuration))
     fd.set('kind', 'workout')
+    fd.set('duration', planDuration)
 
     startTransition(async () => {
       try {
-        await saveProgramAction(fd)
+        const actionToRun = saveAction ?? saveProgramAction
+        await actionToRun(fd)
       } catch (err: any) {
         setError(err?.message ?? 'Failed to save workout plan.')
       }
@@ -338,7 +352,59 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
         />
       </label>
 
-      {/* ── Day Management Bar ── */}
+      {/* ── Plan Duration Selector (Duration: Week, Month, 2 Months, etc.) ── */}
+      <div
+        style={{
+          borderTop: '1px solid var(--border-subtle)',
+          paddingTop: 'var(--space-4)',
+        }}
+      >
+        <div style={{ marginBottom: '0.6rem' }}>
+          <label style={{ fontWeight: 700, fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Calendar size={16} style={{ color: 'var(--brand-600)' }} />
+            <span>Plan Duration / مدة الخطة *</span>
+            <span className="text-secondary text-xs" style={{ fontWeight: 400 }}>
+              (Choose the cycle timeframe: weekly, monthly, 2 months, etc.)
+            </span>
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {[
+            { id: '1_week', label: '1 Week (Weekly Split) / أسبوع' },
+            { id: '2_weeks', label: '2 Weeks / أسبوعين' },
+            { id: '1_month', label: '1 Month (4 Weeks) / شهر' },
+            { id: '2_months', label: '2 Months (8 Weeks) / شهرين' },
+            { id: '3_months', label: '3 Months (12 Weeks) / 3 شهور' },
+            { id: 'ongoing', label: 'Custom / Ongoing / مستمر' },
+          ].map((item) => {
+            const isSelected = planDuration === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setPlanDuration(item.id)}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  border: isSelected ? '2px solid var(--brand-600)' : '1px solid var(--border-subtle)',
+                  background: isSelected ? 'var(--brand-600)' : 'var(--bg-elevated)',
+                  color: isSelected ? '#ffffff' : 'var(--text-primary)',
+                  fontWeight: isSelected ? 700 : 500,
+                  fontSize: 'var(--text-xs)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+        <input type="hidden" name="duration" value={planDuration} />
+      </div>
+
+      {/* ── Day Management Bar (Schedule Days) ── */}
       <div
         style={{
           borderTop: '1px solid var(--border-subtle)',
@@ -351,12 +417,85 @@ export default function WorkoutPlanForm({ clients, exerciseLibrary = [], initial
               <Layers size={18} style={{ color: 'var(--brand-600)' }} />
               Schedule Days ({schedule.length} Days)
             </h3>
+            <span
+              className="badge"
+              style={{
+                fontSize: '11px',
+                background: 'rgba(140, 86, 212, 0.12)',
+                color: 'var(--brand-700)',
+                fontWeight: 600,
+              }}
+            >
+              {planDuration === '1_week'
+                ? '1 Week Cycle'
+                : planDuration === '2_weeks'
+                ? '2 Weeks Cycle'
+                : planDuration === '1_month'
+                ? '1 Month (4 Wks Cycle)'
+                : planDuration === '2_months'
+                ? '2 Months (8 Wks Cycle)'
+                : planDuration === '3_months'
+                ? '3 Months Cycle'
+                : 'Custom Cycle'}
+            </span>
             <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
               {schedule.filter((d) => !d.restDay).length} Workouts • {schedule.filter((d) => d.restDay).length} Rest
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Split Presets */}
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  setSchedule(DEFAULT_DAYS.map((d) => createDay(d.day, d.workout, d.restDay)))
+                  setActiveDayIdx(0)
+                }}
+                style={{ fontSize: '11px', padding: '4px 8px' }}
+                title="Reset to default 7-day week split"
+              >
+                7-Day Split
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  setSchedule([
+                    createDay('Day 1', 'Push (Chest, Shoulders, Triceps)', false),
+                    createDay('Day 2', 'Pull (Back, Biceps)', false),
+                    createDay('Day 3', 'Legs & Core', false),
+                    createDay('Day 4', 'Rest & Recovery', true),
+                  ])
+                  setActiveDayIdx(0)
+                }}
+                style={{ fontSize: '11px', padding: '4px 8px' }}
+                title="Use 3-Day Push/Pull/Legs Split"
+              >
+                3-Day PPL
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => {
+                  setSchedule([
+                    createDay('Day 1', 'Upper Body A', false),
+                    createDay('Day 2', 'Lower Body A', false),
+                    createDay('Day 3', 'Rest Day', true),
+                    createDay('Day 4', 'Upper Body B', false),
+                    createDay('Day 5', 'Lower Body B', false),
+                    createDay('Day 6', 'Rest Day', true),
+                    createDay('Day 7', 'Active Recovery', true),
+                  ])
+                  setActiveDayIdx(0)
+                }}
+                style={{ fontSize: '11px', padding: '4px 8px' }}
+                title="Use 4-Day Upper/Lower Split"
+              >
+                4-Day Upper/Lower
+              </button>
+            </div>
             {/* View Mode Toggle */}
             <div style={{ display: 'flex', background: 'var(--cream-300)', padding: 2, borderRadius: 'var(--radius-md)' }}>
               <button
