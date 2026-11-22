@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import NutritionPlanForm from '@/components/coach/nutrition-plan-form'
 import WorkoutPlanForm from '@/components/coach/workout-plan-form'
-import { deleteProgramAction, coachAddExerciseAction } from '@/app/coach/programs/actions'
+import { deleteProgramAction, coachSaveExerciseAction, coachDeleteExerciseAction } from '@/app/coach/programs/actions'
 import { Salad, Dumbbell, BookOpen, Plus, Trash2, Edit3, Calendar, User, Search, Video } from 'lucide-react'
 
 type Props = {
@@ -34,6 +34,12 @@ export default function CoachProgramsTabs({
 
   const [filterQuery, setFilterQuery] = useState(searchQuery)
   const [editingPlanId, setEditingPlanId] = useState<string | null>(editId)
+  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null)
+
+  // Find exercise being edited
+  const editingExercise = editingExerciseId
+    ? exerciseLibrary.find((e: any) => e.id === editingExerciseId)
+    : null
 
   // Find plan being edited
   const editNutritionPlan = editingPlanId && tab === 'nutrition'
@@ -356,41 +362,97 @@ export default function CoachProgramsTabs({
       {/* ── TAB 3: EXERCISES ── */}
       {tab === 'exercises' && (
         <div style={{ display: 'grid', gap: 'var(--space-6)' }}>
-          {/* Quick Add Exercise Form */}
-          <section className="card">
-            <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: '0.5rem' }}>
-              Contribute Exercise to Global Library
-            </h2>
+          {/* Quick Add / Edit Exercise Form */}
+          <section className="card" style={editingExercise ? { border: '2px solid var(--brand)', background: 'var(--brand-surface, #fcfaff)' } : undefined}>
+            <div className="flex items-center justify-between" style={{ marginBottom: '0.5rem', flexWrap: 'wrap', gap: 8 }}>
+              <h2 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>
+                {editingExercise ? `Edit Exercise: ${editingExercise.name}` : 'Contribute Exercise to Global Library'}
+              </h2>
+              {editingExercise && (
+                <button
+                  type="button"
+                  onClick={() => setEditingExerciseId(null)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ fontSize: '12px' }}
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
             <p className="text-secondary text-xs" style={{ marginBottom: '1rem' }}>
-              Add a new movement to the exercise directory for your workout schedules.
+              {editingExercise
+                ? 'Update movement details, instructions, or demonstration video link.'
+                : 'Add a new movement to the exercise directory for your workout schedules.'}
             </p>
 
-            <form action={coachAddExerciseAction} style={{ display: 'grid', gap: 'var(--space-3)' }}>
+            <form
+              key={editingExercise?.id ?? 'new-exercise'}
+              action={coachSaveExerciseAction}
+              style={{ display: 'grid', gap: 'var(--space-3)' }}
+            >
+              {editingExercise && <input type="hidden" name="id" value={editingExercise.id} />}
+
               <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
                 <label className="form-group">
                   <span>Exercise Name *</span>
-                  <input name="name" required placeholder="e.g. Romanian Deadlift" />
+                  <input
+                    name="name"
+                    required
+                    defaultValue={editingExercise?.name ?? ''}
+                    placeholder="e.g. Romanian Deadlift"
+                  />
                 </label>
                 <label className="form-group">
                   <span>Muscle Group *</span>
-                  <input name="muscle_group" required placeholder="e.g. Hamstrings / Glutes" />
+                  <input
+                    name="muscle_group"
+                    required
+                    defaultValue={editingExercise?.muscle_group ?? ''}
+                    placeholder="e.g. Hamstrings / Glutes"
+                  />
                 </label>
               </div>
 
               <div className="grid grid-2" style={{ gap: 'var(--space-3)' }}>
                 <label className="form-group">
                   <span>Instructions & Technique Notes</span>
-                  <input name="description" placeholder="Key cues, foot placement, range of motion..." />
+                  <input
+                    name="description"
+                    defaultValue={editingExercise?.description ?? ''}
+                    placeholder="Key cues, foot placement, range of motion..."
+                  />
                 </label>
                 <label className="form-group">
                   <span>Demonstration Video URL</span>
-                  <input name="video_url" type="url" placeholder="https://youtube.com/..." />
+                  <input
+                    name="video_url"
+                    type="url"
+                    defaultValue={editingExercise?.video_url ?? ''}
+                    placeholder="https://youtube.com/..."
+                  />
                 </label>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+                {editingExercise && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingExerciseId(null)}
+                    className="btn btn-ghost btn-sm"
+                  >
+                    Cancel
+                  </button>
+                )}
                 <button type="submit" className="btn btn-primary btn-sm" style={{ minWidth: 140 }}>
-                  <Plus size={14} /> Add to Library
+                  {editingExercise ? (
+                    <>
+                      <Edit3 size={14} /> Update Exercise
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={14} /> Add to Library
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -435,11 +497,15 @@ export default function CoachProgramsTabs({
                       <th>Muscle Group</th>
                       <th>Instructions</th>
                       <th>Demonstration</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredExercises.map((ex: any) => (
-                      <tr key={ex.id}>
+                      <tr
+                        key={ex.id}
+                        style={editingExerciseId === ex.id ? { backgroundColor: 'var(--brand-surface, #fcfaff)' } : undefined}
+                      >
                         <td>
                           <strong>{ex.name}</strong>
                         </td>
@@ -463,6 +529,45 @@ export default function CoachProgramsTabs({
                           ) : (
                             <span className="text-secondary" style={{ fontSize: '11px' }}>—</span>
                           )}
+                        </td>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingExerciseId(ex.id)
+                                window.scrollTo({ top: 0, behavior: 'smooth' })
+                              }}
+                              className="btn btn-ghost btn-sm"
+                              style={{ padding: '4px 8px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                              title="Edit Exercise"
+                            >
+                              <Edit3 size={13} /> Edit
+                            </button>
+                            <form action={coachDeleteExerciseAction} style={{ display: 'inline' }}>
+                              <input type="hidden" name="id" value={ex.id} />
+                              <button
+                                type="submit"
+                                onClick={(e) => {
+                                  if (!confirm(`Are you sure you want to delete "${ex.name}"?`)) {
+                                    e.preventDefault()
+                                  }
+                                }}
+                                className="btn btn-ghost btn-sm"
+                                style={{
+                                  padding: '4px 8px',
+                                  fontSize: '12px',
+                                  color: 'var(--error, #dc2626)',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                }}
+                                title="Delete Exercise"
+                              >
+                                <Trash2 size={13} /> Delete
+                              </button>
+                            </form>
+                          </div>
                         </td>
                       </tr>
                     ))}

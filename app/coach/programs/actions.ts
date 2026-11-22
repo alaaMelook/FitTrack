@@ -74,8 +74,9 @@ export async function deleteProgramAction(formData: FormData) {
   redirect('/coach/programs?deleted=1')
 }
 
-export async function coachAddExerciseAction(formData: FormData) {
+export async function coachSaveExerciseAction(formData: FormData) {
   const session = await requireCoach()
+  const id = String(formData.get('id') ?? '').trim()
   const name = String(formData.get('name') ?? '').trim()
   const muscle_group = String(formData.get('muscle_group') ?? '').trim()
   const description = String(formData.get('description') ?? '').trim() || null
@@ -86,19 +87,68 @@ export async function coachAddExerciseAction(formData: FormData) {
   }
 
   const db: any = createAdminClient()
-  const { error } = await db.from('exercise_library').insert({
-    name,
-    muscle_group,
-    description,
-    video_url,
-    created_by_user_id: session.id,
-  })
+
+  if (id) {
+    // Update existing exercise
+    const { error } = await db
+      .from('exercise_library')
+      .update({
+        name,
+        muscle_group,
+        description,
+        video_url,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+
+    if (error) {
+      redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
+    }
+  } else {
+    // Create new exercise
+    const { error } = await db.from('exercise_library').insert({
+      name,
+      muscle_group,
+      description,
+      video_url,
+      created_by_user_id: session.id,
+    })
+
+    if (error) {
+      redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
+    }
+  }
+
+  revalidatePath('/coach/programs')
+  revalidatePath('/coach/exercise-library')
+  revalidatePath('/coach/workout-planner')
+  revalidatePath('/admin/programs')
+  redirect('/coach/programs?tab=exercises&saved=1')
+}
+
+export async function coachAddExerciseAction(formData: FormData) {
+  return coachSaveExerciseAction(formData)
+}
+
+export async function coachDeleteExerciseAction(formData: FormData) {
+  await requireCoach()
+  const id = String(formData.get('id') ?? '').trim()
+
+  if (!id) redirect('/coach/programs?tab=exercises&error=missing-id')
+
+  const db: any = createAdminClient()
+  const { error } = await db
+    .from('exercise_library')
+    .delete()
+    .eq('id', id)
 
   if (error) {
     redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
   }
 
   revalidatePath('/coach/programs')
+  revalidatePath('/coach/exercise-library')
+  revalidatePath('/coach/workout-planner')
   revalidatePath('/admin/programs')
-  redirect('/coach/programs?tab=exercises&saved=1')
+  redirect('/coach/programs?tab=exercises&deleted=1')
 }
