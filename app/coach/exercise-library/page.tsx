@@ -287,16 +287,10 @@ export default async function ExerciseLibraryPage({
                     </thead>
                     <tbody>
                       {exList.map((ex: any) => {
-                        const isOwner = ex.created_by_user_id === session.id
                         return (
                           <tr key={ex.id}>
                             <td>
                               <strong>{ex.name}</strong>
-                              {!isOwner && (
-                                <span className="badge badge-neutral" style={{ marginLeft: 6, fontSize: '10px' }}>
-                                  Standard
-                                </span>
-                              )}
                             </td>
                             <td>
                               <span className="badge badge-brand">{ex.muscle_group}</span>
@@ -321,31 +315,23 @@ export default async function ExerciseLibraryPage({
                             </td>
                             <td style={{ textAlign: 'right' }}>
                               <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                                {isOwner ? (
-                                  <>
-                                    <Link
-                                      href={`/coach/exercise-library?edit=${ex.id}`}
-                                      className="btn btn-ghost btn-sm"
-                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                                    >
-                                      <Edit3 size={13} /> Edit
-                                    </Link>
-                                    <form action={coachDeleteExerciseAction}>
-                                      <input type="hidden" name="id" value={ex.id} />
-                                      <button
-                                        type="submit"
-                                        className="btn btn-ghost btn-sm"
-                                        style={{ color: 'var(--error, #dc2626)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                                      >
-                                        <Trash2 size={13} /> Delete
-                                      </button>
-                                    </form>
-                                  </>
-                                ) : (
-                                  <span className="text-secondary text-xs" style={{ fontStyle: 'italic', opacity: 0.7 }}>
-                                    System Exercise
-                                  </span>
-                                )}
+                                <Link
+                                  href={`/coach/exercise-library?edit=${ex.id}`}
+                                  className="btn btn-ghost btn-sm"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                >
+                                  <Edit3 size={13} /> Edit
+                                </Link>
+                                <form action={coachDeleteExerciseAction}>
+                                  <input type="hidden" name="id" value={ex.id} />
+                                  <button
+                                    type="submit"
+                                    className="btn btn-ghost btn-sm"
+                                    style={{ color: 'var(--error, #dc2626)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                  >
+                                    <Trash2 size={13} /> Delete
+                                  </button>
+                                </form>
                               </div>
                             </td>
                           </tr>

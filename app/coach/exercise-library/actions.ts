@@ -20,7 +20,7 @@ export async function coachSaveExerciseAction(formData: FormData) {
   const db: any = createAdminClient()
 
   if (id) {
-    // Update — only if this coach created it
+    // Update — any exercise (coach can edit all exercises in the library)
     const { error } = await db
       .from('exercise_library')
       .update({
@@ -31,7 +31,6 @@ export async function coachSaveExerciseAction(formData: FormData) {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .eq('created_by_user_id', session.id)
 
     if (error) {
       redirect(`/coach/exercise-library?error=${encodeURIComponent(error.message)}`)
@@ -69,7 +68,6 @@ export async function coachDeleteExerciseAction(formData: FormData) {
     .from('exercise_library')
     .delete()
     .eq('id', id)
-    .eq('created_by_user_id', session.id)
 
   if (error) {
     redirect(`/coach/exercise-library?error=${encodeURIComponent(error.message)}`)
