@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireCoach } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logActivity } from '@/lib/activity-logger'
 
 type ProgramKind = 'nutrition' | 'workout'
 const tables: Record<ProgramKind, string> = {
@@ -46,6 +47,15 @@ export async function saveProgramAction(formData: FormData) {
     const values = { client_id: clientId, coach_user_id: session.id, title, notes: notes || null, [kind === 'nutrition' ? 'meals' : 'schedule']: payload, updated_at: new Date().toISOString() }
     const result = id ? await db.from(tables[kind]).update(values).eq('id', id).eq('client_id', clientId) : await db.from(tables[kind]).insert(values)
     if (result.error) throw result.error
+
+    await logActivity({
+      actorUserId: session.id,
+      action: id ? `Updated ${kind} plan "${title}"` : `Created ${kind} plan "${title}"`,
+      entityType: kind === 'nutrition' ? 'nutrition_plan' : 'workout_plan',
+      entityId: id || undefined,
+      targetUserId: undefined,
+      metadata: { title, clientId },
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save this plan.'
     redirect(`/coach/programs?error=${encodeURIComponent(message)}`)
@@ -66,6 +76,13 @@ export async function deleteProgramAction(formData: FormData) {
     const db: any = createAdminClient()
     const { error } = await db.from(tables[kind]).delete().eq('id', id).eq('client_id', clientId).eq('coach_user_id', session.id)
     if (error) throw error
+
+    await logActivity({
+      actorUserId: session.id,
+      action: `Deleted ${kind} plan`,
+      entityType: kind === 'nutrition' ? 'nutrition_plan' : 'workout_plan',
+      entityId: id,
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to delete this plan.'
     redirect(`/coach/programs?error=${encodeURIComponent(message)}`)
@@ -104,25 +121,40 @@ export async function coachSaveExerciseAction(formData: FormData) {
     if (error) {
       redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
     }
+
+    await logActivity({
+      actorUserId: session.id,
+      action: `Updated exercise "${name}"`,
+      entityType: 'exercise_library',
+      entityId: id,
+    })
   } else {
     // Create new exercise
-    const { error } = await db.from('exercise_library').insert({
+    const { data: created, error } = await db.from('exercise_library').insert({
       name,
       muscle_group,
       description,
       video_url,
       created_by_user_id: session.id,
-    })
+    }).select('id').maybeSingle()
 
     if (error) {
       redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
     }
+
+    await logActivity({
+      actorUserId: session.id,
+      action: `Contributed exercise "${name}" to library`,
+      entityType: 'exercise_library',
+      entityId: created?.id,
+    })
   }
 
   revalidatePath('/coach/programs')
   revalidatePath('/coach/exercise-library')
   revalidatePath('/coach/workout-planner')
   revalidatePath('/admin/programs')
+  revalidatePath('/admin/activity-logs')
   redirect('/coach/programs?tab=exercises&saved=1')
 }
 
@@ -131,12 +163,14 @@ export async function coachAddExerciseAction(formData: FormData) {
 }
 
 export async function coachDeleteExerciseAction(formData: FormData) {
-  await requireCoach()
+  const session = await requireCoach()
   const id = String(formData.get('id') ?? '').trim()
 
   if (!id) redirect('/coach/programs?tab=exercises&error=missing-id')
 
   const db: any = createAdminClient()
+  const { data: ex } = await db.from('exercise_library').select('name').eq('id', id).maybeSingle()
+
   const { error } = await db
     .from('exercise_library')
     .delete()
@@ -146,9 +180,17 @@ export async function coachDeleteExerciseAction(formData: FormData) {
     redirect(`/coach/programs?tab=exercises&error=${encodeURIComponent(error.message)}`)
   }
 
+  await logActivity({
+    actorUserId: session.id,
+    action: `Deleted exercise "${ex?.name || id}" from library`,
+    entityType: 'exercise_library',
+    entityId: id,
+  })
+
   revalidatePath('/coach/programs')
   revalidatePath('/coach/exercise-library')
   revalidatePath('/coach/workout-planner')
   revalidatePath('/admin/programs')
+  revalidatePath('/admin/activity-logs')
   redirect('/coach/programs?tab=exercises&deleted=1')
 }

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { requireCoach } from '@/lib/auth/session'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
+import { logActivity } from '@/lib/activity-logger'
 
 function parseWorkoutPayload(raw: FormDataEntryValue | null) {
   if (typeof raw !== 'string') throw new Error('Add plan details before saving.')
@@ -74,6 +75,14 @@ export async function saveWorkoutPlanAction(formData: FormData) {
       : await db.from('workout_plans').insert(values)
 
     if (result.error) throw result.error
+
+    await logActivity({
+      actorUserId: session.id,
+      action: id ? `Updated workout plan "${title}"` : `Created workout plan "${title}"`,
+      entityType: 'workout_plan',
+      entityId: id || undefined,
+      metadata: { title, clientId },
+    })
   } catch (error) {
     if (isRedirectError(error)) throw error
     const message = error instanceof Error ? error.message : 'Unable to save this plan.'
@@ -111,6 +120,14 @@ export async function deleteWorkoutPlanAction(formData: FormData) {
       .eq('coach_user_id', session.id)
 
     if (error) throw error
+
+    await logActivity({
+      actorUserId: session.id,
+      action: 'Deleted workout plan',
+      entityType: 'workout_plan',
+      entityId: id,
+      metadata: { clientId },
+    })
   } catch (error) {
     if (isRedirectError(error)) throw error
     const message = error instanceof Error ? error.message : 'Unable to delete this plan.'

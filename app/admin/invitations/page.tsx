@@ -1,17 +1,19 @@
 import type { Metadata } from 'next'
 import { requireAdmin } from '@/lib/auth/session'
-import { createClient } from '@/lib/supabase/server'
-import { Mail, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { Mail, Clock, CheckCircle2, XCircle, Trash2 } from 'lucide-react'
 import { InviteForm } from '@/components/admin/invite-form'
+import { deleteInvitationAction } from '@/app/admin/invitations/actions'
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Invitations — FitTrack' }
 
 export default async function AdminInvitationsPage() {
   const session = await requireAdmin()
-  const supabase = await createClient()
+  const db: any = createAdminClient()
 
   // Fetch all invitations
-  const { data: invitations } = await supabase
+  const { data: invitations } = await db
     .from('client_invitations')
     .select('*')
     .order('created_at', { ascending: false })
@@ -52,7 +54,7 @@ export default async function AdminInvitationsPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {invitations.map((inv) => (
+                {invitations.map((inv: any) => (
                   <div
                     key={inv.id}
                     style={{
@@ -64,7 +66,28 @@ export default async function AdminInvitationsPage() {
                   >
                     <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
                       <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)' }}>{inv.email}</span>
-                      {statusBadge(inv.status)}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {statusBadge(inv.status)}
+                        <form action={deleteInvitationAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="id" value={inv.id} />
+                          <button
+                            type="submit"
+                            className="btn btn-ghost btn-icon"
+                            style={{
+                              padding: 4,
+                              height: 24,
+                              width: 24,
+                              color: 'var(--error, #dc2626)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            title="Delete Invitation"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </form>
+                      </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
                       <span style={{ textTransform: 'capitalize' }}>Role: {inv.role}</span>

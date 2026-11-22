@@ -103,7 +103,9 @@ export function NutritionPlanView({ plans }: { plans: any[] }) {
                     </span>
                   )}
                 </div>
-                <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>{plan.title}</h2>
+                <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+                  {plan.title === '0' || !plan.title?.trim() ? 'Personalized Nutrition Plan' : plan.title}
+                </h2>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', fontSize: '13px', color: '#64748b' }}>
                   {plan.updated_at && (
                     <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -509,7 +511,9 @@ function SingleWorkoutScheduleCard({ plan }: { plan: any }) {
               </span>
             )}
           </div>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>{plan.title}</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+            {plan.title === '0' || !plan.title?.trim() ? 'Personalized Workout Plan' : plan.title}
+          </h2>
           <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', fontSize: '13px', color: '#64748b' }}>
             {plan.updated_at && (
               <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
